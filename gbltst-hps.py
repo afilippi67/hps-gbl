@@ -298,7 +298,7 @@ def exampleHpsTest(inputfile):
       NdfSum += Ndf
       LostSum += Lost
 
-      if nTry == 0:
+      if nTry == 0 or debug:
         print 'fit result: Chi2=%f Ndf=%d Lost=%d' % (Chi2, Ndf, Lost)
       
 
@@ -310,16 +310,16 @@ def exampleHpsTest(inputfile):
       for i in range(1, traj.getNumPoints() + 1):      
         # label start at 1
         locPar, locCov = traj.getResults(-i)
-        if nTry < 0:
+        if nTry == 0:
           print " >Point ", i
           print " locPar ", locPar
-          #print " locCov ", locCov      
+          print " locCov ", locCov      
         result.addPoint(-i,locPar,locCov)
         locPar, locCov = traj.getResults(i)
-        if nTry < 0:
+        if nTry == 0:
           print " Point> ", i
           print " locPar ", locPar
-        #print " locCov ", locCov
+          print " locCov ", locCov
         result.addPoint(i, locPar, locCov)
       
 
@@ -399,7 +399,6 @@ def exampleHpsTest(inputfile):
         plots.h_p_truth_res_vs_p.Fill(track.p_truth(bfac),track.p(bfac)-track.p_truth(bfac))
       
       
-      
       plots.h_qOverP_corr.Fill(result.curvCorr())
       plots.h_qOverP_gbl.Fill(result.qOverP_gbl(bfac))
       plots.h_p_gbl.Fill(result.p_gbl(bfac))
@@ -419,6 +418,10 @@ def exampleHpsTest(inputfile):
       plots.h_z0_initial.Fill(track.z0())
       plots.h_d0_gbl.Fill(result.d0_gbl(vtx_idx))
       plots.h_z0_gbl.Fill(result.z0_gbl(vtx_idx))
+
+      print 'curvCorr ', result.curvCorr(), ' xT_corr ', result.xTCorr(vtx_idx), ' yT_corr ', result.yTCorr(vtx_idx)
+      print 'd0_corr ', result.d0Corr(vtx_idx), ' z0_corr ', result.z0Corr(vtx_idx)
+      print 'd0_gbl ', result.d0_gbl(vtx_idx), ' z0_gbl ' , result.z0_gbl(vtx_idx) 
 
       for label,corr in result.locPar.iteritems():
         if label>0:
@@ -472,7 +475,8 @@ def exampleHpsTest(inputfile):
     print " Chi2Sum/NdfSum ", Chi2Sum / NdfSum
     print " LostSum/nTry ", LostSum / nTry
   print " Make plots "
-  plots.show(savePlots)
+  if nTry > 0:
+    plots.show(savePlots)
 
 
 def getArgs():
