@@ -421,7 +421,7 @@ def exampleHpsTest(inputfile):
 
       print 'curvCorr ', result.curvCorr(), ' xT_corr ', result.xTCorr(vtx_idx), ' yT_corr ', result.yTCorr(vtx_idx)
       print 'd0_corr ', result.d0Corr(vtx_idx), ' z0_corr ', result.z0Corr(vtx_idx)
-      print 'd0_gbl ', result.d0_gbl(vtx_idx), ' z0_gbl ' , result.z0_gbl(vtx_idx) 
+      print 'd0_gbl ', result.d0_gbl(vtx_idx), ' (', result.track.d0(), ') z0_gbl ' , result.z0_gbl(vtx_idx), ' (', result.track.z0(), ')' 
 
       for label,corr in result.locPar.iteritems():
         if label>0:
