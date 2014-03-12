@@ -512,17 +512,15 @@ class globalDers:
     
     def getResDers(self):
         # Derivatives of the local residual w.r.t. the measurements
-        t = self.t
-        n = np.array([self.n])
-        tdotn = np.dot(t,np.transpose(n))
+        tdotn = np.dot(self.t,self.n.T)
         drdg = np.eye(3)
-        #print t, n, tdotn, drdg
+        #print self.t, self.n, tdotn, drdg
         for i in range(3):
             for j in range(3):
                 delta = 0.
                 if i==j:
                     delta = 1.       
-                drdg[i][j] = delta - t[0,i]*n[0,j]/tdotn[0,0]
+                drdg[i][j] = delta - self.t[0][i]*self.n[0][j]/tdotn[0][0]
         return drdg
     
     
