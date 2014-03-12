@@ -255,9 +255,9 @@ def exampleHpsTest(inputfile):
           print 'ERROR: tDirs are not consistent!'
           sys.exit(1)
         # rotate track direction to measurement frame          
-        tDirMeas = np.dot( tDirGlobal, np.array([strip.u, strip.v, strip.w]) )
+        tDirMeas = np.dot( tDirGlobal, np.array([strip.u, strip.v, strip.w]).T )
         #tDirMeas = utils.rotateGlToMeas(strip,tDirGlobal)
-        normalMeas = np.dot( strip.w , np.array([strip.u, strip.v, strip.w]) ) 
+        normalMeas = np.dot( np.array([strip.w]) , np.array([strip.u, strip.v, strip.w]).T ) 
         #normalMeas = utils.rotateGlToMeas(strip,strip.w) 
         # non-measured directions 
         vmeas = 0.
@@ -419,10 +419,11 @@ def exampleHpsTest(inputfile):
       plots.h_d0_gbl.Fill(result.d0_gbl(vtx_idx))
       plots.h_z0_gbl.Fill(result.z0_gbl(vtx_idx))
 
-      print 'curvCorr ', result.curvCorr(), ' xT_corr ', result.xTCorr(vtx_idx), ' yT_corr ', result.yTCorr(vtx_idx)
-      print 'd0_corr ', result.d0Corr(vtx_idx), ' z0_corr ', result.z0Corr(vtx_idx)
-      print 'd0_gbl ', result.d0_gbl(vtx_idx), ' (', result.track.d0(), ') z0_gbl ' , result.z0_gbl(vtx_idx), ' (', result.track.z0(), ')' 
-
+      if debug:
+        print 'curvCorr ', result.curvCorr(), ' xT_corr ', result.xTCorr(vtx_idx), ' yT_corr ', result.yTCorr(vtx_idx)
+        print 'd0_corr ', result.d0Corr(vtx_idx), ' z0_corr ', result.z0Corr(vtx_idx)
+        print 'd0_gbl ', result.d0_gbl(vtx_idx), ' (', result.track.d0(), ') z0_gbl ' , result.z0_gbl(vtx_idx), ' (', result.track.z0(), ')' 
+      
       for label,corr in result.locPar.iteritems():
         if label>0:
           lbl = 2*(label-1) + 1
