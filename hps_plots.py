@@ -108,7 +108,10 @@ class plotter:
         self.h_res_truth_layer = []
         self.h_res_gbl_layer = []
         for l in range(1,13):
-            xmax = 0.1 + (l-1)*0.25
+            l_tmp = l-1
+            if l_tmp % 2 == 1:
+                l_tmp = l_tmp - 1
+            xmax = 0.02 + (l_tmp)*0.2
             xmin = -1.*xmax
             h = TH1F('h_res_layer%d'%l,'Initial trajectory;Residual in measurement direction layer %d (mm)'%l,50,xmin,xmax)
             self.h_res_layer.append(h)
@@ -487,23 +490,43 @@ class plotter:
         
         c_res_initial_layer = TCanvas('c_res_initial_layer','c_res_initial_layer',10,10,690*2,390*2)
         c_res_initial_layer.Divide(4,3)
+        c_res_initial_layer_mean = TCanvas('c_res_initial_layer_mean','c_res_initial_layer_mean',10,10,690*2,390*2)
+        gr_res_initial_layer_mean = TGraphErrors()
+        gr_res_initial_layer_mean.SetTitle(';Layer;u residual (mm)')
         c_res_truth_layer = TCanvas('c_res_truth_layer','c_res_truth_layer',10,10,690*2,390*2)
         c_res_truth_layer.Divide(4,3)
         c_res_gbl_layer = TCanvas('c_res_gbl_layer','c_res_gbl_layer',10,10,690*2,390*2)
         c_res_gbl_layer.Divide(4,3)
+        c_res_gbl_layer_mean = TCanvas('c_res_gbl_layer_mean','c_res_gbl_layer_mean',10,10,690*2,390*2)
+        gr_res_gbl_layer_mean = TGraphErrors()
+        gr_res_gbl_layer_mean.SetTitle(';Layer;u residual (mm)')
         for i in range(1,13):
             c_res_truth_layer.cd(i)
             self.h_res_truth_layer[i-1].Draw()
             c_res_initial_layer.cd(i)
             self.h_res_layer[i-1].Draw()
+            if self.h_res_layer[i-1].GetEntries() > 0.:
+                gr_res_initial_layer_mean.SetPoint(i-1,i,self.h_res_layer[i-1].GetMean())
+                gr_res_initial_layer_mean.SetPointError(i-1,0.,self.h_res_layer[i-1].GetMeanError())
             c_res_gbl_layer.cd(i)
             self.h_res_gbl_layer[i-1].Draw()
+            if self.h_res_gbl_layer[i-1].GetEntries() > 0.:
+                gr_res_gbl_layer_mean.SetPoint(i-1,i,self.h_res_gbl_layer[i-1].GetMean())
+                gr_res_gbl_layer_mean.SetPointError(i-1,0.,self.h_res_gbl_layer[i-1].GetMeanError())
 
             
+        c_res_initial_layer_mean.cd()
+        gr_res_initial_layer_mean.SetMarkerStyle(20)
+        gr_res_initial_layer_mean.Draw('ALP')
+        c_res_gbl_layer_mean.cd()
+        gr_res_gbl_layer_mean.SetMarkerStyle(20)
+        gr_res_gbl_layer_mean.Draw('ALP')
             
         if(save): c_res_initial_layer.SaveAs('res_initial_individual_layer%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_initial_layer_mean.SaveAs('res_initial_individual_layer_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
         if(save): c_res_truth_layer.SaveAs('res_truth_individual_layer%s.%s'%(self.getTag(),self.picExt),self.picExt)
         if(save): c_res_gbl_layer.SaveAs('res_gbl_individual_layer%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_gbl_layer_mean.SaveAs('res_gbl_individual_layer_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
         if(save): saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())
