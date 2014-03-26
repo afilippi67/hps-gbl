@@ -462,19 +462,20 @@ def gblSimpleJacobian(ds, cosl, bfac):
     return jac
 
 class globalDers:
-    def __init__(self,layer,umeas,vmeas,wmeas, tDir, normal):
+    def __init__(self,layer,umeas,vmeas,wmeas, tDir, tPred, normal):
         self.layer = layer # measurement direction
         self.umeas = umeas # measurement direction
         self.vmeas = vmeas # unmeasured direction
         self.wmeas = wmeas # normal to plane
         self.t = tDir # track direction
+        self.p = tPred # track prediction
         self.n = normal # normal to plane
         # Global derivaties of the local measurements
-        dm_dg = self.getMeasDers()
+        self.dm_dg = self.getMeasDers()
         # Derivatives of residuals w.r.t. measurement 
-        dr_dm = self.getResDers()
+        self.dr_dm = self.getResDers()
         # Derivatives of residuals w.r.t. global parameters
-        self.dr_dg = np.dot(dr_dm, dm_dg)
+        self.dr_dg = np.dot(self.dr_dm, self.dm_dg)
         #print 'dm_dg'
         #print dm_dg
         #print 'dr_dm'
@@ -482,6 +483,12 @@ class globalDers:
         #print 'dr_dg'
         #print self.dr_dg
     
+    def dump(self):
+        print 'globalDers:'
+        print 'layer ', self.layer
+        print 'umeas ', self.umeas, ' vmeas ', self.vmeas, ' wmeas ', self.wmeas
+        print 't ', self.t, ' p ', self.p, ' n ', self.n
+        print 'dm_dg\n',self.dm_dg, '\ndr_dm\n',self.dr_dm,'\ndr_dg\n',self.dr_dg
 
     def getDers(self,isTop):
         half_offset = 10000 
@@ -511,23 +518,24 @@ class globalDers:
 
     
     def getResDers(self):
-        # Derivatives of the local residual w.r.t. the measurements
-        tdotn = np.dot(self.t,self.n.T)
+        # Derivatives of the local perturbed residual w.r.t. the measurements m (u,v,w)'
+        tdotn = np.dot(self.t.T,self.n)
         drdg = np.eye(3)
-        #print self.t, self.n, tdotn, drdg
+        #print 't ', self.t, ' n ', self.n, ' dot(t,n) ', tdotn
         for i in range(3):
             for j in range(3):
                 delta = 0.
                 if i==j:
                     delta = 1.       
-                drdg[i][j] = delta - self.t[0][i]*self.n[0][j]/tdotn[0][0]
+                drdg[i][j] = delta - self.t[i]*self.n[j]/tdotn[0]
         return drdg
     
     
     
     
     def getMeasDers(self):
-        # Global derivaties of the local measurements
+        # Derivative of mt, the perturbed measured coordinate vector m 
+        # w.r.t. to global parameters: u,v,w,alpha,beta,gamma
 
         # Derivative of the local measurement for a translation in u
         dmu_du = 1.
@@ -543,15 +551,15 @@ class globalDers:
         dmw_dw = 1.
         # Derivative of the local measurement for a rotation around u-axis (alpha)
         dmu_dalpha = 0.
-        dmv_dalpha = self.wmeas
-        dmw_dalpha = -1.0 * self.vmeas
+        dmv_dalpha = self.p[2] # self.wmeas
+        dmw_dalpha = -1.0 * self.p[1] # -1.0 * self.vmeas
         # Derivative of the local measurement for a rotation around v-axis (beta)
-        dmu_dbeta = -1.0 * self.wmeas
+        dmu_dbeta = -1.0 * self.p[2] #-1.0 * self.wmeas
         dmv_dbeta = 0.
-        dmw_dbeta = self.umeas
+        dmw_dbeta = self.p[0] #self.umeas
         # Derivative of the local measurement for a rotation around w-axis (gamma)
-        dmu_dgamma = self.vmeas
-        dmv_dgamma = -1.0 * self.umeas
+        dmu_dgamma = self.p[1] # self.vmeas
+        dmv_dgamma = -1.0 * self.p[0]  # -1.0 * self.umeas 
         dmw_dgamma = 0.
         # put into matrix
         dmdg = np.array([[dmu_du, dmu_dv, dmu_dw, dmu_dalpha, dmu_dbeta, dmu_dgamma],[dmv_du, dmv_dv, dmv_dw, dmv_dalpha, dmv_dbeta, dmv_dgamma],[dmw_du, dmw_dv, dmw_dw, dmw_dalpha, dmw_dbeta, dmw_dgamma]])

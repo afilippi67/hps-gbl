@@ -159,6 +159,8 @@ def exampleHpsTest(inputfile):
         uvDir = np.array([[-sinPhi, cosPhi, 0.], \
                             [-sinLambda * cosPhi, -sinLambda * sinPhi, cosLambda]])
         
+
+        if debug: print 'Track direction in curvilinear frame\n',uvDir
         
         # projection from  measurement to local (curvilinear uv) directions (duv/dm)
         proM2l = np.dot(uvDir, mDir.T)
@@ -254,16 +256,37 @@ def exampleHpsTest(inputfile):
         if( np.linalg.norm( tDirGlobal - strip.tDir) > 0.00001):
           print 'ERROR: tDirs are not consistent!'
           sys.exit(1)
+
+
+        # Projection matrix from tracking frame to measurement frame
+        # t_u = dot(u,i)*t_i + dot(u,j)*t_j + dot(u,k)*t_k
+        # where t_u is component in new u direction and t_i is in the i direction
+        prjTrkToMeas = np.array([strip.u,strip.v,strip.w])
+        if debug: 
+          print 'tDirGlobal ', tDirGlobal
+          print 'rotation matrix to meas frame\n', prjTrkToMeas
+          print 'tDirMeas ', tDirMeas_new
+          print 'normalMeas ', normalMeas_new
+          print 'tPosGlobal ', np.array( [strip.tPos]) , ' (origin ', np.array( [strip.origin] ),')'
+          print 'tDiff ', tDiff
+          print 'tPosMeas ', tPosMeas
+        # rotate to measurement frame          
+        tDirMeas = np.dot( prjTrkToMeas, tDirGlobal.T) 
+        normalMeas = np.dot( prjTrkToMeas, np.array([strip.w]).T )
+        # vector coplanar with measurement plane from origin to prediction
+        tDiff = np.array( [strip.tPos]) - np.array( [strip.origin] )
+        # rotate to measurement frame          
+        tPosMeas = np.dot( prjTrkToMeas, tDiff.T) 
+
         # rotate track direction to measurement frame          
-        tDirMeas = np.dot( tDirGlobal, np.array([strip.u, strip.v, strip.w]).T )
-        #tDirMeas = utils.rotateGlToMeas(strip,tDirGlobal)
-        normalMeas = np.dot( np.array([strip.w]) , np.array([strip.u, strip.v, strip.w]).T ) 
-        #normalMeas = utils.rotateGlToMeas(strip,strip.w) 
-        # non-measured directions 
+        # non-measured directions         
         vmeas = 0.
         wmeas = 0.
+
         # calculate and add derivatives to point
-        glDers = utils.globalDers(strip.layer,strip.meas,vmeas,wmeas,tDirMeas,normalMeas)
+        glDers = utils.globalDers(strip.layer,strip.meas,vmeas,wmeas,tDirMeas,tPosMeas,normalMeas)
+        if debug:
+          glDers.dump()
         ders = glDers.getDers(track.isTop())
         labGlobal = ders['labels']
         addDer = ders['ders']
