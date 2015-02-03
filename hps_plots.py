@@ -313,19 +313,31 @@ class plotter:
         c_impactParameters_corr.cd(1)
         self.h_d0_initial.Fit('gaus','Q')
         self.h_d0_initial.Draw()
-        myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
+        if self.h_d0_initial.GetFunction('gaus') != None:
+            myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
+        else:
+            myText(0.6,0.7,'#sigma=?',0.05,1)            
         c_impactParameters_corr.cd(2)
         self.h_z0_initial.Fit('gaus','Q')
         self.h_z0_initial.Draw()
-        myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
+        if self.h_z0_initial.GetFunction('gaus') != None:
+            myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
+        else:
+            myText(0.6,0.7,'#sigma=?',0.05,1)                        
         c_impactParameters_corr.cd(3)
         self.h_d0_gbl.Fit('gaus','Q')
         self.h_d0_gbl.Draw()
-        myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
+        if self.h_d0_gbl.GetFunction('gaus') != None:
+            myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
+        else:
+            myText(0.6,0.7,'#sigma=?',0.05,1)                                    
         c_impactParameters_corr.cd(4)
         self.h_z0_gbl.Fit('gaus','Q')
         self.h_z0_gbl.Draw()
-        myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
+        if self.h_z0_gbl.GetFunction('gaus') != None:
+            myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
+        else:
+            myText(0.6,0.7,'#sigma=?',0.05,1)                                                
         
         if(save): c_impactParameters_corr.SaveAs('impactParameters%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
