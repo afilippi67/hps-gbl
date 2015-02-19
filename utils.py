@@ -476,10 +476,10 @@ class globalDers:
         self.dr_dm = self.getResDers()
         # Derivatives of residuals w.r.t. global parameters
         self.dr_dg = np.dot(self.dr_dm, self.dm_dg)
-        #print 'dm_dg'
-        #print dm_dg
         #print 'dr_dm'
-        #print dr_dm
+        #print self.dr_dm
+        #print 'dm_dg'
+        #print self.dm_dg
         #print 'dr_dg'
         #print self.dr_dg
     
@@ -634,7 +634,15 @@ def getXPlanePositionIterative(parameters,origin,normal,eps=0.0001):
         pos = getHelixPosAtX(parameters, x + dx)
         # Check if we are on the plane
         d = np.dot(pos-origin,np.array([normal]).T)
-        dx += -1.0*d[0]/2.0
+        # the direction to move depends on the direction of normal w.r.t. track
+        # assume that the track moves in +x direction
+        if np.sign(normal[0])==-1: 
+            dx += 1.0*d[0]/2.0
+        elif np.sign(normal[0])==1:
+            dx += -1.0*d[0]/2.0
+        else:
+            print 'ERROR: normal is invalid, should move along x-axis'
+            sys.exit(1)
         #print  nIter,' d ', d, ' pos ', pos, ' dx ', dx
         nIter +=  1
     return pos
