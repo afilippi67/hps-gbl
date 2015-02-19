@@ -23,7 +23,7 @@ useUncorrMS = False # inflate MS errors instead of using scatterers
 nEventsMax = -1
 isTop=False
 isBot=False
-isTestRun = True
+isTestRun = False
 isMC = False
 nametag = ''
 savePlots = True;
@@ -262,14 +262,6 @@ def exampleHpsTest(inputfile):
         # t_u = dot(u,i)*t_i + dot(u,j)*t_j + dot(u,k)*t_k
         # where t_u is component in new u direction and t_i is in the i direction
         prjTrkToMeas = np.array([strip.u,strip.v,strip.w])
-        if debug: 
-          print 'tDirGlobal ', tDirGlobal
-          print 'rotation matrix to meas frame\n', prjTrkToMeas
-          print 'tDirMeas ', tDirMeas_new
-          print 'normalMeas ', normalMeas_new
-          print 'tPosGlobal ', np.array( [strip.tPos]) , ' (origin ', np.array( [strip.origin] ),')'
-          print 'tDiff ', tDiff
-          print 'tPosMeas ', tPosMeas
         # rotate to measurement frame          
         tDirMeas = np.dot( prjTrkToMeas, tDirGlobal.T) 
         normalMeas = np.dot( prjTrkToMeas, np.array([strip.w]).T )
@@ -278,6 +270,13 @@ def exampleHpsTest(inputfile):
         # rotate to measurement frame          
         tPosMeas = np.dot( prjTrkToMeas, tDiff.T) 
 
+        if debug: 
+          print 'tDirGlobal ', tDirGlobal
+          print 'rotation matrix to meas frame\n', prjTrkToMeas
+          print 'tPosGlobal ', np.array( [strip.tPos]) , ' (origin ', np.array( [strip.origin] ),')'
+          print 'tDiff ', tDiff
+          print 'tPosMeas ', tPosMeas
+        
         # rotate track direction to measurement frame          
         # non-measured directions         
         vmeas = 0.
@@ -290,18 +289,20 @@ def exampleHpsTest(inputfile):
         ders = glDers.getDers(track.isTop())
         labGlobal = ders['labels']
         addDer = ders['ders']
-        if debug:
-          print 'global derivatives:'
-          print labGlobal
-          print addDer
+        #if debug:
+        print 'global derivatives:'
+        #print labGlobal.shape
+        #for ider in range(labGlobal.shape[1]):
+        #  print labGlobal[0][ider], '\t', addDer[0][ider]
         point.addGlobals(labGlobal, addDer)
         ##### 
         
         # add point to trajectory
         iLabel = traj.addPoint(point)
 
-        if nTry==0:
-          print 'uRes ', strip.id, ' uRes ', strip.ures, ' pred ', strip.tPos, ' s(3D) ', strip.pathLen3D
+        #if nTry==0:
+        #print 'uRes ', strip.id, ' uRes ', strip.ures, ' pred ', tPosMeas, ' s(3D) ', strip.pathLen3D
+        #print 'uRes ', strip.id, ' uRes ', strip.ures, ' pred ', strip.tPos, ' s(3D) ', strip.pathLen3D
         
         # go to next point
         s += step
@@ -321,8 +322,8 @@ def exampleHpsTest(inputfile):
       NdfSum += Ndf
       LostSum += Lost
 
-      if nTry == 0 or debug:
-        print 'fit result: Chi2=%f Ndf=%d Lost=%d' % (Chi2, Ndf, Lost)
+      #if nTry == 0 or debug:
+      print 'fit result: Chi2=%f Ndf=%d Lost=%d' % (Chi2, Ndf, Lost)
       
 
       # get corrections and covariance matrix at points; collect the result in one object
@@ -339,7 +340,7 @@ def exampleHpsTest(inputfile):
           print " locCov ", locCov      
         result.addPoint(-i,locPar,locCov)
         locPar, locCov = traj.getResults(i)
-        if nTry == 0:
+        if nTry == -1:
           print " Point> ", i
           print " locPar ", locPar
           print " locCov ", locCov
@@ -442,10 +443,13 @@ def exampleHpsTest(inputfile):
       plots.h_d0_gbl.Fill(result.d0_gbl(vtx_idx))
       plots.h_z0_gbl.Fill(result.z0_gbl(vtx_idx))
 
+
       if debug:
         print 'curvCorr ', result.curvCorr(), ' xT_corr ', result.xTCorr(vtx_idx), ' yT_corr ', result.yTCorr(vtx_idx)
         print 'd0_corr ', result.d0Corr(vtx_idx), ' z0_corr ', result.z0Corr(vtx_idx)
         print 'd0_gbl ', result.d0_gbl(vtx_idx), ' (', result.track.d0(), ') z0_gbl ' , result.z0_gbl(vtx_idx), ' (', result.track.z0(), ')' 
+
+      print 'locPar ', result.locPar[1]
       
       for label,corr in result.locPar.iteritems():
         if label>0:
