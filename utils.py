@@ -10,9 +10,9 @@ def chi2Prob(chi2,ndf):
     return TMath.Prob(chi2,ndf)
 
 class Strip:
-    def __init__(self,i,layer):
+    def __init__(self,i,millepedeId):
         self.id = i
-        self.layer = layer
+        self.millepedeId = millepedeId
         self.pathLen = 0.
         self.pathLen3D = 0.
         self.origin = []
@@ -186,7 +186,7 @@ def readHPSEvents(infile,nEventsMax):
                 #print 'Adding strip id %d ' % strip.id
                     track.strips.append(strip)
                     if debug:  
-                        print 'Added strip %d layer %d to list of strips for track %d in event %d' % (strip.id,strip.layer,track.id,event.id)
+                        print 'Added strip %d millepedeLayer %d to list of strips for track %d in event %d' % (strip.id,strip.millepedeId,track.id,event.id)
                 if track!=None:
                     event.tracks.append(track)
                     if debug:  
@@ -208,7 +208,7 @@ def readHPSEvents(infile,nEventsMax):
                 #print 'Adding strip id %d ' % strip.id
                 track.strips.append(strip)
                 if debug:  
-                    print 'Added strip %d layer %d to list of strips for track %d in event %d' % (strip.id,strip.layer,track.id,event.id)
+                    print 'Added strip %d layer %d to list of strips for track %d in event %d' % (strip.id,strip.millepedeId,track.id,event.id)
             if track!=None:
                 event.tracks.append(track)
                 if debug:  
@@ -222,7 +222,7 @@ def readHPSEvents(infile,nEventsMax):
                 #print 'Adding strip id %d ' % strip.id
                 track.strips.append(strip)
                 if debug:  
-                    print 'Added strip %d layer %d to list of strips for track %d in event %d' % (strip.id,strip.layer,track.id,event.id)
+                    print 'Added strip %d layer %d to list of strips for track %d in event %d' % (strip.id,strip.millepedeId,track.id,event.id)
             strip = None
             nr = int(line.split('New Strip id layer')[1].split()[0])
             layer = int(line.split('New Strip id layer')[1].split()[1])
@@ -462,8 +462,8 @@ def gblSimpleJacobian(ds, cosl, bfac):
     return jac
 
 class globalDers:
-    def __init__(self,layer,umeas,vmeas,wmeas, tDir, tPred, normal):
-        self.layer = layer # measurement direction
+    def __init__(self,id,umeas,vmeas,wmeas, tDir, tPred, normal):
+        self.millepedeId = id 
         self.umeas = umeas # measurement direction
         self.vmeas = vmeas # unmeasured direction
         self.wmeas = wmeas # normal to plane
@@ -485,7 +485,7 @@ class globalDers:
     
     def dump(self):
         print 'globalDers:'
-        print 'layer ', self.layer
+        print 'layer ', self.millepedeId
         print 'umeas ', self.umeas, ' vmeas ', self.vmeas, ' wmeas ', self.wmeas
         print 't ', self.t, ' p ', self.p, ' n ', self.n
         print 'dm_dg\n',self.dm_dg, '\ndr_dm\n',self.dr_dm,'\ndr_dg\n',self.dr_dg
@@ -508,7 +508,7 @@ class globalDers:
                 direction = ((ip-1) % 3) + 1
             else:
                 direction = ip
-            label = (int)(topBot * half_offset + transRot * translation_offset + direction * direction_offset + self.layer)
+            label = (int)(topBot * half_offset + transRot * translation_offset + direction * direction_offset + self.millepedeId)
             labels.append(label)
             ders.append(self.dr_dg[0,ip-1])
         

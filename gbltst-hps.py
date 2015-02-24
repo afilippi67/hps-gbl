@@ -134,7 +134,7 @@ def exampleHpsTest(inputfile):
 
       for strip in track.strips:
         
-        if debug: print '\nProcessing strip id %d at layer %d' % (strip.id, strip.layer)
+        if debug: print '\nProcessing strip id %d at millepedeId %d' % (strip.id, strip.millepedeId)
         
         step = strip.pathLen3D - s
 
@@ -209,7 +209,7 @@ def exampleHpsTest(inputfile):
         measMsCov = np.dot(proL2m, np.dot(msCov[3:, 3:], proL2m.T))
         
         # Plot the MS variance in the u-direction
-        plots.h_measMsCov.Fill(float(strip.layer),measMsCov[0,0])
+        plots.h_measMsCov.Fill(float(strip.id+1),measMsCov[0,0])
         
         if debug:
           print 'msCov at this point:'
@@ -283,7 +283,7 @@ def exampleHpsTest(inputfile):
         wmeas = 0.
 
         # calculate and add derivatives to point
-        glDers = utils.globalDers(strip.layer,strip.meas,vmeas,wmeas,tDirMeas,tPosMeas,normalMeas)
+        glDers = utils.globalDers(strip.millepedeId,strip.meas,vmeas,wmeas,tDirMeas,tPosMeas,normalMeas)
         if debug:
           glDers.dump()
         ders = glDers.getDers(track.isTop())
@@ -291,9 +291,9 @@ def exampleHpsTest(inputfile):
         addDer = ders['ders']
         #if debug:
         print 'global derivatives:'
-        #print labGlobal.shape
-        #for ider in range(labGlobal.shape[1]):
-        #  print labGlobal[0][ider], '\t', addDer[0][ider]
+        print labGlobal.shape
+        for ider in range(labGlobal.shape[1]):
+          print labGlobal[0][ider], '\t', addDer[0][ider]
         point.addGlobals(labGlobal, addDer)
         ##### 
         
@@ -468,14 +468,14 @@ def exampleHpsTest(inputfile):
           iLabel = 1
 
         #residuals 
-        plots.h_res_layer[strip.layer-1].Fill(strip.ures)
-        plots.h_res_truth_layer[strip.layer-1].Fill(strip.uresTruth)
+        plots.h_res_layer[strip.id].Fill(strip.ures)
+        plots.h_res_truth_layer[strip.id].Fill(strip.uresTruth)
         # correction to xT,yT from GBL fit
         corr = np.matrix( [result.locPar[iLabel][3], result.locPar[iLabel][4] ] )
         # project to measurement direction
         corr_meas = np.matrix( proL2m_list[strip.id] ) * np.transpose( np.matrix( corr ) )
         ures_gbl = strip.ures - corr_meas[0,0] # note minus sign due to definition of residual
-        plots.h_res_gbl_layer[strip.layer-1].Fill(ures_gbl)
+        plots.h_res_gbl_layer[strip.id].Fill(ures_gbl)
         
         # make plots for a given track only
         if nTry==0:
