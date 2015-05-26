@@ -1,6 +1,8 @@
+import re
 from ROOT import TH1F, TH2F, TGraph, TGraphErrors, TCanvas, TLegend, TLatex, gStyle, gDirectory, TIter, TFile, gPad
 from ROOT import Double as ROOTDouble
 from math import sqrt
+
 
 
 class plotter:
@@ -38,9 +40,9 @@ class plotter:
         self.h_chi2_initial_truth = TH1F('h_chi2_initial_truth',';Track #chi^{2};Entries',50,0.,20.)
         self.h_chi2ndf_initial_truth = TH1F('h_chi2ndf_initial_truth',';Track #chi^{2}/ndf;Entries',50,0.,8.)
         self.h_chi2prob_initial_truth = TH1F('h_chi2prob_initial_truth',';Track #chi^{2} prob.;Entries',50,0.,1.)
-        self.h_p = TH1F('h_p',';Track momentum;Entries',50,0.,3.)
-        self.h_p_gbl = TH1F('h_p_gbl',';Track momentum;Entries',50,0.,3.)
-        self.h_p_truth = TH1F('h_p_truth',';Track momentum;Entries',50,0.,3.)
+        self.h_p = TH1F('h_p',';Track momentum;Entries',50,0.,1.5)
+        self.h_p_gbl = TH1F('h_p_gbl',';Track momentum;Entries',50,0.,1.5)
+        self.h_p_truth = TH1F('h_p_truth',';Track momentum;Entries',50,0.,1.5)
         self.h_p_truth_res = TH1F('h_p_truth_res',';Track - Truth momentum;Entries',50,-0.3,0.3)
         self.h_p_truth_res_vs_p = TH2F('h_p_truth_res_vs_p',';Truth momentum;Track - Truth momentum',6,0.4,1.6,50,-0.3,0.3)
         self.h_p_truth_res_gbl = TH1F('h_p_truth_res_gbl',';Track - Truth momentum;Entries',50,-0.3,0.3)
@@ -48,8 +50,8 @@ class plotter:
         self.h_qOverP_truth_res_gbl = TH1F('h_qOverP_truth_res_gbl',';q/p - Truth q/p;Entries',50,-0.3,0.3)
         self.h_qOverP_truth_res = TH1F('h_qOverP_truth_res',';q/p - Truth q/p;Entries',50,-0.3,0.3)
         self.h_qOverP_corr = TH1F('h_qOverP_corr',';q/p correction;Entries',50,-6.0e-1,6.0e-1)
-        self.h_qOverP = TH1F('h_qOverP',';q/p;Entries',50,1.0e-3,1.0e-3)
-        self.h_qOverP_gbl = TH1F('h_qOverP_gbl',';q/p;Entries',50,1.0e-3,1.0e-3)
+        self.h_qOverP = TH1F('h_qOverP',';q/p;Entries',50,-5,5)
+        self.h_qOverP_gbl = TH1F('h_qOverP_gbl',';q/p;Entries',50,-5,5)
         self.h_vtx_xT_corr = TH1F('h_vtx_xT_corr',';x_{T} vtx corr',50,-5.0e-1,5.0e-1)
         self.h_vtx_yT_corr = TH1F('h_vtx_yT_corr',';y_{T} vtx corr',50,-5.0e-1,5.0e-1)
         self.h_d0_corr = TH1F('h_d0_corr',';d_{0} corr [mm]',50,-5.0e-1,5.0e-1)
@@ -104,22 +106,11 @@ class plotter:
         self.h_clParGBL_pull_qOverP = TH1F('h_clParGBL_pull_qOverP',';q/p-q/p_{truth}',50,-5.0,5.0)
         self.h_clParGBL_pull_lambda = TH1F('h_clParGBL_pull_lambda',';#lambda-#lambda_{truth}',50,-5.0,5.0)
         self.h_clParGBL_pull_phi = TH1F('h_clParGBL_pull_phi',';#phi-#phi_{truth}',50,-5.0,5.0)
-        self.h_res_layer = []
-        self.h_res_truth_layer = []
-        self.h_res_gbl_layer = []
-        for l in range(1,13):
-            l_tmp = l-1
-            if l_tmp % 2 == 1:
-                l_tmp = l_tmp - 1
-            xmax = 0.02 + (l_tmp)*0.2
-            xmin = -1.*xmax
-            h = TH1F('h_res_layer%d'%l,'Initial trajectory;Residual in measurement direction layer %d (mm)'%l,50,xmin,xmax)
-            self.h_res_layer.append(h)
-            h = TH1F('h_res_gbl_layer%d'%l,'GBL trajectory;Residual in measurement direction layer %d (mm)'%l,50,-0.02,0.02)
-            self.h_res_gbl_layer.append(h)
-            h = TH1F('h_res_truth_layer%d'%l,'Truth trajectory;Residual in measurement direction layer %d (mm)'%l,50,xmin,xmax)
-            self.h_res_truth_layer.append(h)
-        
+        self.h_map_res_layer = {}
+        self.h_map_res_gbl_layer = {}
+        self.h_map_res_truth_layer = {}
+        self.h_map_pred_layer = {}
+
         self.gr_ures = TGraphErrors()
         self.gr_ures_truth = TGraph()
         self.gr_ures_simhit = TGraph()
@@ -128,6 +119,60 @@ class plotter:
     
 
 
+    def getLayer(self, deName):
+        m = re.search("_L(\d)\S_", deName)
+        if m!=None:            
+            l = m.group(1)
+            il = int(l)
+            return il
+        else:
+            print "Cannot extract layer number from deName ", deName
+            sys.exit(1)
+    
+    def fillSensorPlots(self,type,deName,val):
+        h = None
+        if type=="res":
+            if deName in self.h_map_res_layer:
+                h = self.h_map_res_layer[deName]
+            else:
+                l = self.getLayer(deName)
+                xmax = 0.01 + (l-1)*0.6
+                xmin = -1.*xmax
+                h = TH1F('h_res_%s'%deName,'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                self.h_map_res_layer[deName] = h
+            h.Fill(val)
+        elif type=="res_truth":
+            if deName in self.h_map_res_truth_layer:
+                h = self.h_map_res_truth_layer[deName]
+            else:
+                l = self.getLayer(deName)
+                xmax = 0.01 + (l-1)*0.6
+                xmin = -1.*xmax
+                h = TH1F('h_res_truth_%s'%deName,'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                self.h_map_res_truth_layer[deName] = h
+            h.Fill(val)
+        elif type=="res_gbl":
+            if deName in self.h_map_res_gbl_layer:
+                h = self.h_map_res_gbl_layer[deName]
+            else:
+                l = self.getLayer(deName)
+                xmax = 0.01 
+                xmin = -1.*xmax
+                h = TH1F('h_res_gbl_%s'%deName,'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                self.h_map_res_gbl_layer[deName] = h
+            h.Fill(val)
+        elif type=="pred_meas":
+            if deName in self.h_map_pred_layer:
+                h = self.h_map_pred_layer[deName]
+            else:
+                l = self.getLayer(deName)
+                h = TH2F('h_pred_%s'%deName,'%s;Hit pred. in v (mm);Hit pred. in u (mm)'%deName,20,-60,60,20,-25,25)
+                self.h_map_pred_layer[deName] = h
+            h.Fill(val[1],val[0])
+        else:
+            print "Thus type ius not defined ", type
+    
+                
     def show(self,save):
         #if not save:
         #    return
@@ -182,15 +227,29 @@ class plotter:
         c_track_momentum = TCanvas('c_track_momentum','c_track_momentum',10,10,690*2,500)
         c_track_momentum.Divide(3,1)
         c_track_momentum.cd(1)
-        self.h_p.Draw()
-        self.h_p_gbl.SetLineStyle(2)
+        self.h_p.SetFillStyle(1001);
+        self.h_p.SetFillColor(4);
+        self.h_p.SetLineColor(1);
+        self.h_p.Fit("gaus","R","",1.0,1.4)        
+        self.h_p_gbl.SetFillStyle(3005);
+        self.h_p_gbl.SetFillColor(2);
+        self.h_p_gbl.SetLineColor(2);
+        self.h_p_gbl.Draw("")
+        self.h_p_gbl.Fit("gaus","R","",1.0,1.4)        
+        self.h_p.Draw("same")
         self.h_p_gbl.Draw("same")
         self.h_p_truth.SetLineStyle(3)
-        self.h_p_truth.SetLineColor(2)
+        self.h_p_truth.SetLineColor(3)
         self.h_p_truth.Draw("same")
         c_track_momentum.cd(2)
-        self.h_qOverP.Draw()
-        self.h_qOverP_gbl.SetLineStyle(2)
+        self.h_qOverP.SetFillStyle(1001);
+        self.h_qOverP.SetFillColor(4);
+        self.h_qOverP.SetLineColor(1);
+        self.h_qOverP_gbl.SetFillStyle(3005);
+        self.h_qOverP_gbl.SetFillColor(2);
+        self.h_qOverP_gbl.SetLineColor(2);
+        self.h_qOverP_gbl.Draw("")
+        self.h_qOverP.Draw("same")
         self.h_qOverP_gbl.Draw("same")
         c_track_momentum.cd(3)
         self.h_qOverP_corr.Draw()
@@ -499,47 +558,99 @@ class plotter:
             if(save): c_res_example.SaveAs('res_example%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
+        c_res_initial_sensor = TCanvas('c_res_initial_sensor','c_res_initial_sensor',10,10,690*2,390*2)
+        c_res_initial_sensor.Divide(6,3)
+        c_res_initial_sensor_mean = TCanvas('c_res_initial_sensor_mean','c_res_initial_sensor_mean',10,10,690*2,390*2)
+        gr_res_initial_sensor_mean = TGraphErrors()
+        gr_res_initial_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
+        i = 1
+        ms = sorted(self.h_map_res_layer,key=self.getLayer)
+        for sensor in ms:
+            c_res_initial_sensor.cd(i)
+            h = self.h_map_res_layer[sensor] 
+            h.Draw()
+            if h.GetEntries() > 0.:
+                ii = gr_res_initial_sensor_mean.GetN()
+                gr_res_initial_sensor_mean.SetPoint(ii,ii,h.GetMean())
+                gr_res_initial_sensor_mean.SetPointError(ii,0.,h.GetMeanError())
+            i=i+1
         
-        c_res_initial_layer = TCanvas('c_res_initial_layer','c_res_initial_layer',10,10,690*2,390*2)
-        c_res_initial_layer.Divide(4,3)
-        c_res_initial_layer_mean = TCanvas('c_res_initial_layer_mean','c_res_initial_layer_mean',10,10,690*2,390*2)
-        gr_res_initial_layer_mean = TGraphErrors()
-        gr_res_initial_layer_mean.SetTitle(';Layer;u residual (mm)')
-        c_res_truth_layer = TCanvas('c_res_truth_layer','c_res_truth_layer',10,10,690*2,390*2)
-        c_res_truth_layer.Divide(4,3)
-        c_res_gbl_layer = TCanvas('c_res_gbl_layer','c_res_gbl_layer',10,10,690*2,390*2)
-        c_res_gbl_layer.Divide(4,3)
-        c_res_gbl_layer_mean = TCanvas('c_res_gbl_layer_mean','c_res_gbl_layer_mean',10,10,690*2,390*2)
-        gr_res_gbl_layer_mean = TGraphErrors()
-        gr_res_gbl_layer_mean.SetTitle(';Layer;u residual (mm)')
-        for i in range(1,13):
-            c_res_truth_layer.cd(i)
-            self.h_res_truth_layer[i-1].Draw()
-            c_res_initial_layer.cd(i)
-            self.h_res_layer[i-1].Draw()
-            if self.h_res_layer[i-1].GetEntries() > 0.:
-                gr_res_initial_layer_mean.SetPoint(i-1,i,self.h_res_layer[i-1].GetMean())
-                gr_res_initial_layer_mean.SetPointError(i-1,0.,self.h_res_layer[i-1].GetMeanError())
-            c_res_gbl_layer.cd(i)
-            self.h_res_gbl_layer[i-1].Draw()
-            if self.h_res_gbl_layer[i-1].GetEntries() > 0.:
-                gr_res_gbl_layer_mean.SetPoint(i-1,i,self.h_res_gbl_layer[i-1].GetMean())
-                gr_res_gbl_layer_mean.SetPointError(i-1,0.,self.h_res_gbl_layer[i-1].GetMeanError())
+
+        c_res_gbl_sensor = TCanvas('c_res_gbl_sensor','c_res_gbl_sensor',10,10,690*2,390*2)
+        c_res_gbl_sensor.Divide(6,3)
+        c_res_gbl_sensor_mean = TCanvas('c_res_gbl_sensor_mean','c_res_gbl_sensor_mean',10,10,690*2,390*2)
+        gr_res_gbl_sensor_mean = TGraphErrors()
+        gr_res_gbl_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
+        i = 1
+        ms = sorted(self.h_map_res_gbl_layer,key=self.getLayer)
+        for sensor in ms:
+            c_res_gbl_sensor.cd(i)
+            h = self.h_map_res_gbl_layer[sensor] 
+            h.Draw()
+            if h.GetEntries() > 0.:
+                ii = gr_res_gbl_sensor_mean.GetN()
+                gr_res_gbl_sensor_mean.SetPoint(ii,ii,h.GetMean())
+                gr_res_gbl_sensor_mean.SetPointError(ii,0.,h.GetMeanError())
+            i=i+1
+        
+
+
+
+        c_res_truth_sensor = TCanvas('c_res_truth_sensor','c_res_truth_sensor',10,10,690*2,390*2)
+        c_res_truth_sensor.Divide(6,3)
+        c_res_truth_sensor_mean = TCanvas('c_res_truth_sensor_mean','c_res_truth_sensor_mean',10,10,690*2,390*2)
+        gr_res_truth_sensor_mean = TGraphErrors()
+        gr_res_truth_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
+        i = 1
+        ms = sorted(self.h_map_res_truth_layer,key=self.getLayer)
+        for sensor in ms:
+            c_res_truth_sensor.cd(i)
+            h = self.h_map_res_truth_layer[sensor] 
+            h.Draw()
+            if h.GetEntries() > 0.:
+                ii = gr_res_truth_sensor_mean.GetN()
+                gr_res_truth_sensor_mean.SetPoint(ii,ii,h.GetMean())
+                gr_res_truth_sensor_mean.SetPointError(ii,0.,h.GetMeanError())
+            i=i+1
+
+
 
             
-        c_res_initial_layer_mean.cd()
-        gr_res_initial_layer_mean.SetMarkerStyle(20)
-        gr_res_initial_layer_mean.Draw('ALP')
-        c_res_gbl_layer_mean.cd()
-        gr_res_gbl_layer_mean.SetMarkerStyle(20)
-        gr_res_gbl_layer_mean.Draw('ALP')
-            
-        if(save): c_res_initial_layer.SaveAs('res_initial_individual_layer%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_initial_layer_mean.SaveAs('res_initial_individual_layer_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_truth_layer.SaveAs('res_truth_individual_layer%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_gbl_layer.SaveAs('res_gbl_individual_layer%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_gbl_layer_mean.SaveAs('res_gbl_individual_layer_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        c_res_initial_sensor_mean.cd()
+        gr_res_initial_sensor_mean.SetMarkerStyle(20)
+        gr_res_initial_sensor_mean.Draw('ALP')
+        c_res_gbl_sensor_mean.cd()
+        gr_res_gbl_sensor_mean.SetMarkerStyle(20)
+        gr_res_gbl_sensor_mean.Draw('ALP')
+        c_res_truth_sensor_mean.cd()
+        gr_res_truth_sensor_mean.SetMarkerStyle(20)
+        gr_res_truth_sensor_mean.Draw('ALP')
+
+
+
+
+        c_pred_sensor = TCanvas('c_pred_sensor','c_pred_sensor',10,10,690*2,390*2)
+        c_pred_sensor.Divide(6,3)
+        i = 1
+        ms = sorted(self.h_map_pred_layer,key=self.getLayer)
+        for sensor in ms:
+            c_pred_sensor.cd(i)
+            h = self.h_map_pred_layer[sensor] 
+            h.Draw("colz")
+            i=i+1
         
+
+
+       
+        
+        if(save): c_res_initial_sensor.SaveAs('res_initial_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_initial_sensor_mean.SaveAs('res_initial_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_truth_sensor.SaveAs('res_truth_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_gbl_sensor.SaveAs('res_gbl_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_gbl_sensor_mean.SaveAs('res_gbl_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_truth_sensor.SaveAs('res_truth_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_truth_sensor_mean.SaveAs('res_truth_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_pred_sensor.SaveAs('pred_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         if(save): saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())
         

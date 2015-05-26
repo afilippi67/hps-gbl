@@ -10,9 +10,10 @@ def chi2Prob(chi2,ndf):
     return TMath.Prob(chi2,ndf)
 
 class Strip:
-    def __init__(self,i,millepedeId):
+    def __init__(self,i,millepedeId,deName):
         self.id = i
         self.millepedeId = millepedeId
+        self.deName = deName
         self.pathLen = 0.
         self.pathLen3D = 0.
         self.origin = []
@@ -32,6 +33,7 @@ class Strip:
         self.sinLambda = 0.
         self.tDir = []
         self.tPos = []
+        self.tPosMeas = []
 
 class Track:
     def __init__(self,tracknr):
@@ -156,7 +158,8 @@ class GBLResults:
         return self.track.d0()+self.d0Corr(label) 
     def z0_gbl(self,label):
         return self.track.z0()+self.z0Corr(label)
-
+    def printVertexCorr(self):
+        print "qOverPCorr " + str(self.locPar[1][self.idx_qoverp]) + " xTCorr " + str(self.locPar[1][self.idx_xT]) + " yTCorr " +  str(self.locPar[1][self.idx_yT])  + " xtPrimeCorr " +  str(self.locPar[1][1])  + " yTPrimeCorr " +  str(self.locPar[1][2])
     
 
 #def rotateGlToMeas(strip,vector):
@@ -226,7 +229,8 @@ def readHPSEvents(infile,nEventsMax):
             strip = None
             nr = int(line.split('New Strip id layer')[1].split()[0])
             layer = int(line.split('New Strip id layer')[1].split()[1])
-            strip = Strip(nr,layer)
+            deName = line.split('New Strip id layer')[1].split()[2]
+            strip = Strip(nr,layer,deName)
         elif 'Track perPar (R theta phi d0 z0)' in line:
             params = line.split('Track perPar (R theta phi d0 z0)')[1].split()
             if len(params)!=5:
@@ -400,6 +404,8 @@ def readHPSEvents(infile,nEventsMax):
                 sys.exit(1)
             for p in params:
                 strip.tPos.append(float(p))
+            #for p in params[3:]:
+            #    strip.tPosMeas.append(float(p))
         else:
             print 'ERROR I should never get here line:\n%s' % line
             sys.exit()

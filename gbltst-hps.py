@@ -10,6 +10,7 @@ import numpy as np
 import math
 import time
 import sys
+import os.path
 import utils
 import argparse
 sys.path.append('../GeneralBrokenLines/python')
@@ -134,7 +135,8 @@ def exampleHpsTest(inputfile):
 
       for strip in track.strips:
         
-        if debug: print '\nProcessing strip id %d at millepedeId %d' % (strip.id, strip.millepedeId)
+        if debug:
+          print '\nProcessing strip id %d, millepedeId %d on sensor %s origin (%f,%f,%f)' % (strip.id, strip.millepedeId,strip.deName,strip.origin[0],strip.origin[1],strip.origin[2])
         
         step = strip.pathLen3D - s
 
@@ -276,7 +278,9 @@ def exampleHpsTest(inputfile):
           print 'tPosGlobal ', np.array( [strip.tPos]) , ' (origin ', np.array( [strip.origin] ),')'
           print 'tDiff ', tDiff
           print 'tPosMeas ', tPosMeas
-        
+        plots.fillSensorPlots("pred_meas", strip.deName, tPosMeas)
+
+          
         # rotate track direction to measurement frame          
         # non-measured directions         
         vmeas = 0.
@@ -289,11 +293,11 @@ def exampleHpsTest(inputfile):
         ders = glDers.getDers(track.isTop())
         labGlobal = ders['labels']
         addDer = ders['ders']
-        #if debug:
-        print 'global derivatives:'
-        print labGlobal.shape
-        for ider in range(labGlobal.shape[1]):
-          print labGlobal[0][ider], '\t', addDer[0][ider]
+        if debug:
+          print 'global derivatives for strip ', strip.id, ' which has millepede id ', strip.millepedeId
+          print labGlobal.shape
+          for ider in range(labGlobal.shape[1]):
+            print labGlobal[0][ider], '\t', addDer[0][ider]
         point.addGlobals(labGlobal, addDer)
         ##### 
         
@@ -322,8 +326,8 @@ def exampleHpsTest(inputfile):
       NdfSum += Ndf
       LostSum += Lost
 
-      #if nTry == 0 or debug:
-      print 'fit result: Chi2=%f Ndf=%d Lost=%d' % (Chi2, Ndf, Lost)
+      if nTry == 0 or debug:
+        print 'fit result: Chi2=%f Ndf=%d Lost=%d' % (Chi2, Ndf, Lost)
       
 
       # get corrections and covariance matrix at points; collect the result in one object
@@ -346,7 +350,10 @@ def exampleHpsTest(inputfile):
           print " locCov ", locCov
         result.addPoint(i, locPar, locCov)
       
-
+      if nTry == 0 or debug:
+        result.printVertexCorr()
+      
+        
 
       # calculate the truth chi2 from initial fit
       # get the truth and fitted params with indexes same as cov matrix of initial fit (dca,phi0,curv,z0,slope)
@@ -448,8 +455,7 @@ def exampleHpsTest(inputfile):
         print 'curvCorr ', result.curvCorr(), ' xT_corr ', result.xTCorr(vtx_idx), ' yT_corr ', result.yTCorr(vtx_idx)
         print 'd0_corr ', result.d0Corr(vtx_idx), ' z0_corr ', result.z0Corr(vtx_idx)
         print 'd0_gbl ', result.d0_gbl(vtx_idx), ' (', result.track.d0(), ') z0_gbl ' , result.z0_gbl(vtx_idx), ' (', result.track.z0(), ')' 
-
-      print 'locPar ', result.locPar[1]
+        print 'locPar ', result.locPar[1]
       
       for label,corr in result.locPar.iteritems():
         if label>0:
@@ -467,15 +473,15 @@ def exampleHpsTest(inputfile):
         else:
           iLabel = 1
 
-        #residuals 
-        plots.h_res_layer[strip.id].Fill(strip.ures)
-        plots.h_res_truth_layer[strip.id].Fill(strip.uresTruth)
+        #residuals
+        plots.fillSensorPlots("res", strip.deName, strip.ures)
+        plots.fillSensorPlots("res_truth", strip.deName, strip.uresTruth)
         # correction to xT,yT from GBL fit
         corr = np.matrix( [result.locPar[iLabel][3], result.locPar[iLabel][4] ] )
         # project to measurement direction
         corr_meas = np.matrix( proL2m_list[strip.id] ) * np.transpose( np.matrix( corr ) )
         ures_gbl = strip.ures - corr_meas[0,0] # note minus sign due to definition of residual
-        plots.h_res_gbl_layer[strip.id].Fill(ures_gbl)
+        plots.fillSensorPlots("res_gbl", strip.deName, ures_gbl)
         
         # make plots for a given track only
         if nTry==0:
@@ -513,8 +519,8 @@ def getArgs():
   parser.add_argument('--debug','-d',type=int,default=0,help='Debug level.')
   parser.add_argument('--events','-n',type=int,default=-1,help='Max events to process.')
   parser.add_argument('--half',required=True,help='Top or bottom half tracks')
-  parser.add_argument('--name',default='tmp',help='Name to add to results')
-  parser.add_argument('--mc','-m',action='store_true',help='Simulation input')
+  parser.add_argument('--name',default='',help='Name to add to results')
+  parser.add_argument('--mc','-m',action='store_true', default=False,help='Simulation input')
   parser.add_argument('--save','-s',action='store_true',help='Save output')
   args = parser.parse_args();
   print args
@@ -526,7 +532,6 @@ if __name__ == '__main__':
   args = getArgs()
 
   nEventsMax = args.events
-  nametag = args.name
   if args.debug > 0:
     debug=True
     if args.debug > 1:
@@ -536,6 +541,9 @@ if __name__ == '__main__':
   if args.half == 'bottom' or args.half == 'b' or args.half == 'bot':
     isBot=True
   isMC = args.mc
+  nametag = os.path.basename(args.file)
+  if args.name != '':
+    nametag = nametag + "-" + args.name
   savePlots = args.save
 
   print 'top', isTop, ' bot ', isBot
