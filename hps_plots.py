@@ -241,6 +241,11 @@ class plotter:
         self.h_p_truth.SetLineStyle(3)
         self.h_p_truth.SetLineColor(3)
         self.h_p_truth.Draw("same")
+        f_gbl = self.h_p_gbl.GetFunction("gaus")
+        if f_gbl != None:
+            myText(0.7,0.63,"%.2f#sigma%.2f"% (f_gbl.GetParameter(1),f_gbl.GetParameter(2)),0.05,1)
+        if self.h_p.GetFunction("gaus") != None:
+            myText(0.7,0.55,"%.2f#sigma%.2f"% (self.h_p.GetFunction("gaus").GetParameter(1),self.h_p.GetFunction("gaus").GetParameter(2)),0.05,1)        
         c_track_momentum.cd(2)
         self.h_qOverP.SetFillStyle(1001);
         self.h_qOverP.SetFillColor(4);
