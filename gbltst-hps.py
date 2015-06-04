@@ -37,9 +37,9 @@ def main(args):
 
   np.random.seed(47117)
 
-  binaryFileName = "milleBinaryISN" + "_" + nametag
-
-  binaryFile = open("%s.dat" % binaryFileName, "wb")
+  if args.save:
+    binaryFileName = "milleBinaryISN" + "_" + nametag
+    binaryFile = open("%s.dat" % binaryFileName, "wb")
 
   inputFile = open(args.file, 'r')
   events = utils.readHPSEvents(inputFile, args.nevents)
@@ -313,7 +313,8 @@ def main(args):
       Chi2, Ndf, Lost = traj.fit()
 
       # write to millepede
-      traj.milleOut(binaryFile)
+      if args.save:
+        traj.milleOut(binaryFile)
 
       # sum up    
       Chi2Sum += Chi2
