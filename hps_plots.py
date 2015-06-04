@@ -1,4 +1,5 @@
 import re
+import sys
 from ROOT import TH1F, TH2F, TGraph, TGraphErrors, TCanvas, TLegend, TLatex, gStyle, gDirectory, TIter, TFile, gPad
 from ROOT import Double as ROOTDouble
 from math import sqrt
@@ -6,11 +7,20 @@ from math import sqrt
 
 
 class plotter:
-    def __init__(self,tag,picExt,testRunFlag,isTop,isBot):
+    def __init__(self,tag,picExt,testRunFlag,isTop=False,isBot=True):
         self.picExt = picExt
         self.testRun = testRunFlag
         self.isTop = isTop
         self.isBot = isBot
+        if not self.isTop and not self.isBot:
+            print 'Cannot create a plotter with no half!?'
+            sys.exit(1)
+        if self.isTop and self.isBot:
+            self.halftag = ''
+        elif self.isTop:
+            self.halftag = '_top'
+        else:
+            self.halftag = '_bot'
         self.doDetailed = False
         self.tag = tag
         self.makePlots()
@@ -28,84 +38,84 @@ class plotter:
             
 
     def makePlots(self):
-        self.h_chi2_gbl_truth = TH1F('h_chi2_gbl_truth',';GBL truth #chi^{2};Entries',50,0.,100.)
-        self.h_chi2ndf_gbl_truth = TH1F('h_chi2ndf_gbl_truth',';GBL truth #chi^{2}/ndf;Entries',50,0.,20.)
-        self.h_chi2prob_gbl_truth = TH1F('h_chi2prob_gbl_truth',';GBL truth #chi^{2} prob.;Entries',50,0.,1.)
-        self.h_chi2 = TH1F('h_chi2',';GBL #chi^{2};Entries',50,0.,20.)
-        self.h_chi2ndf = TH1F('h_chi2ndf',';GBL #chi^{2}/ndf;Entries',50,0.,8.)
-        self.h_chi2prob = TH1F('h_chi2prob',';GBL #chi^{2} prob;Entries',50,0.,1.)
-        self.h_chi2_initial = TH1F('h_chi2_initial',';Track #chi^{2};Entries',50,0.,20.)
-        self.h_chi2ndf_initial = TH1F('h_chi2ndf_initial',';Track #chi^{2}/ndf;Entries',50,0.,8.)
-        self.h_chi2prob_initial = TH1F('h_chi2prob_initial',';Track #chi^{2} prob;Entries',50,0.,1.)
-        self.h_chi2_initial_truth = TH1F('h_chi2_initial_truth',';Track #chi^{2};Entries',50,0.,20.)
-        self.h_chi2ndf_initial_truth = TH1F('h_chi2ndf_initial_truth',';Track #chi^{2}/ndf;Entries',50,0.,8.)
-        self.h_chi2prob_initial_truth = TH1F('h_chi2prob_initial_truth',';Track #chi^{2} prob.;Entries',50,0.,1.)
-        self.h_p = TH1F('h_p',';Track momentum;Entries',50,0.,1.5)
-        self.h_p_gbl = TH1F('h_p_gbl',';Track momentum;Entries',50,0.,1.5)
-        self.h_p_truth = TH1F('h_p_truth',';Track momentum;Entries',50,0.,1.5)
-        self.h_p_truth_res = TH1F('h_p_truth_res',';Track - Truth momentum;Entries',50,-0.3,0.3)
-        self.h_p_truth_res_vs_p = TH2F('h_p_truth_res_vs_p',';Truth momentum;Track - Truth momentum',6,0.4,1.6,50,-0.3,0.3)
-        self.h_p_truth_res_gbl = TH1F('h_p_truth_res_gbl',';Track - Truth momentum;Entries',50,-0.3,0.3)
-        self.h_p_truth_res_gbl_vs_p = TH2F('h_p_truth_res_gbl_vs_p',';Truth momentum;Track - Truth momentum',6,0.4,1.6,50,-0.3,0.3)
-        self.h_qOverP_truth_res_gbl = TH1F('h_qOverP_truth_res_gbl',';q/p - Truth q/p;Entries',50,-0.3,0.3)
-        self.h_qOverP_truth_res = TH1F('h_qOverP_truth_res',';q/p - Truth q/p;Entries',50,-0.3,0.3)
-        self.h_qOverP_corr = TH1F('h_qOverP_corr',';q/p correction;Entries',50,-6.0e-1,6.0e-1)
-        self.h_qOverP = TH1F('h_qOverP',';q/p;Entries',50,-5,5)
-        self.h_qOverP_gbl = TH1F('h_qOverP_gbl',';q/p;Entries',50,-5,5)
-        self.h_vtx_xT_corr = TH1F('h_vtx_xT_corr',';x_{T} vtx corr',50,-5.0e-1,5.0e-1)
-        self.h_vtx_yT_corr = TH1F('h_vtx_yT_corr',';y_{T} vtx corr',50,-5.0e-1,5.0e-1)
-        self.h_d0_corr = TH1F('h_d0_corr',';d_{0} corr [mm]',50,-5.0e-1,5.0e-1)
-        self.h_z0_corr = TH1F('h_z0_corr',';z_{0} corr [mm]',50,-5.0e-1,5.0e-1)
+        self.h_chi2_gbl_truth = TH1F('h_chi2_gbl_truth'+self.halftag,';GBL truth #chi^{2};Entries',50,0.,50.)
+        self.h_chi2ndf_gbl_truth = TH1F('h_chi2ndf_gbl_truth'+self.halftag,';GBL truth #chi^{2}/ndf;Entries',50,0.,20.)
+        self.h_chi2prob_gbl_truth = TH1F('h_chi2prob_gbl_truth'+self.halftag,';GBL truth #chi^{2} prob.;Entries',50,0.,1.)
+        self.h_chi2 = TH1F('h_chi2'+self.halftag,';GBL #chi^{2};Entries',50,0.,50.)
+        self.h_chi2ndf = TH1F('h_chi2ndf'+self.halftag,';GBL #chi^{2}/ndf;Entries',50,0.,8.)
+        self.h_chi2prob = TH1F('h_chi2prob'+self.halftag,';GBL #chi^{2} prob;Entries',50,0.,1.)
+        self.h_chi2_initial = TH1F('h_chi2_initial'+self.halftag,';Track #chi^{2};Entries',50,0.,50.)
+        self.h_chi2ndf_initial = TH1F('h_chi2ndf_initial'+self.halftag,';Track #chi^{2}/ndf;Entries',50,0.,8.)
+        self.h_chi2prob_initial = TH1F('h_chi2prob_initial'+self.halftag,';Track #chi^{2} prob;Entries',50,0.,1.)
+        self.h_chi2_initial_truth = TH1F('h_chi2_initial_truth'+self.halftag,';Track #chi^{2};Entries',50,0.,50.)
+        self.h_chi2ndf_initial_truth = TH1F('h_chi2ndf_initial_truth'+self.halftag,';Track #chi^{2}/ndf;Entries',50,0.,8.)
+        self.h_chi2prob_initial_truth = TH1F('h_chi2prob_initial_truth'+self.halftag,';Track #chi^{2} prob.;Entries',50,0.,1.)
+        self.h_p = TH1F('h_p'+self.halftag,';Track momentum;Entries',50,0.,1.5)
+        self.h_p_gbl = TH1F('h_p_gbl'+self.halftag,';Track momentum;Entries',50,0.,1.5)
+        self.h_p_truth = TH1F('h_p_truth'+self.halftag,';Track momentum;Entries',50,0.,1.5)
+        self.h_p_truth_res = TH1F('h_p_truth_res'+self.halftag,';Track - Truth momentum;Entries',50,-0.3,0.3)
+        self.h_p_truth_res_vs_p = TH2F('h_p_truth_res_vs_p'+self.halftag,';Truth momentum;Track - Truth momentum',6,0.4,1.6,50,-0.3,0.3)
+        self.h_p_truth_res_gbl = TH1F('h_p_truth_res_gbl'+self.halftag,';Track - Truth momentum;Entries',50,-0.3,0.3)
+        self.h_p_truth_res_gbl_vs_p = TH2F('h_p_truth_res_gbl_vs_p'+self.halftag,';Truth momentum;Track - Truth momentum',6,0.4,1.6,50,-0.3,0.3)
+        self.h_qOverP_truth_res_gbl = TH1F('h_qOverP_truth_res_gbl'+self.halftag,';q/p - Truth q/p;Entries',50,-0.3,0.3)
+        self.h_qOverP_truth_res = TH1F('h_qOverP_truth_res'+self.halftag,';q/p - Truth q/p;Entries',50,-0.3,0.3)
+        self.h_qOverP_corr = TH1F('h_qOverP_corr'+self.halftag,';q/p correction;Entries',50,-6.0e-1,6.0e-1)
+        self.h_qOverP = TH1F('h_qOverP'+self.halftag,';q/p;Entries',50,-5,5)
+        self.h_qOverP_gbl = TH1F('h_qOverP_gbl'+self.halftag,';q/p;Entries',50,-5,5)
+        self.h_vtx_xT_corr = TH1F('h_vtx_xT_corr'+self.halftag,';x_{T} vtx corr',50,-5.0e-1,5.0e-1)
+        self.h_vtx_yT_corr = TH1F('h_vtx_yT_corr'+self.halftag,';y_{T} vtx corr',50,-5.0e-1,5.0e-1)
+        self.h_d0_corr = TH1F('h_d0_corr'+self.halftag,';d_{0} corr [mm]',50,-5.0e-1,5.0e-1)
+        self.h_z0_corr = TH1F('h_z0_corr'+self.halftag,';z_{0} corr [mm]',50,-5.0e-1,5.0e-1)
         if self.testRun:
-            self.h_d0_initial = TH1F('h_d0_initial',';d_{0} [mm]',50,-2.0e1,6.0e1)
-            self.h_d0_gbl = TH1F('h_d0_gbl',';d_{0} [mm]',50,-2.0e1,6.0e1)
-            self.h_clPar_initial_xT = TH1F('h_clPar_initial_xT',';x_{T} (mm)',50,-10.,40.)
+            self.h_d0_initial = TH1F('h_d0_initial'+self.halftag,';d_{0} [mm]',50,-2.0e1,6.0e1)
+            self.h_d0_gbl = TH1F('h_d0_gbl'+self.halftag,';d_{0} [mm]',50,-2.0e1,6.0e1)
+            self.h_clPar_initial_xT = TH1F('h_clPar_initial_xT'+self.halftag,';x_{T} (mm)',50,-10.,40.)
             if self.isTop: 
-                self.h_z0_initial = TH1F('h_z0_initial',';z_{0} [mm]',50,1.0e1,4.0e1)
-                self.h_z0_gbl = TH1F('h_z0_gbl',';z_{0} [mm]',50,1.0e1,4.0e1)
-                self.h_clPar_initial_yT = TH1F('h_clPar_initial_yT',';y_{T} (mm)',50,10.,40.)
-                self.h_clPar_initial_lambda = TH1F('h_clPar_initial_lambda',';#lambda (rad)',50,0,0.08)
+                self.h_z0_initial = TH1F('h_z0_initial'+self.halftag,';z_{0} [mm]',50,1.0e1,4.0e1)
+                self.h_z0_gbl = TH1F('h_z0_gbl'+self.halftag,';z_{0} [mm]',50,1.0e1,4.0e1)
+                self.h_clPar_initial_yT = TH1F('h_clPar_initial_yT'+self.halftag,';y_{T} (mm)',50,10.,40.)
+                self.h_clPar_initial_lambda = TH1F('h_clPar_initial_lambda'+self.halftag,';#lambda (rad)',50,0,0.08)
             elif self.isBot: 
-                self.h_z0_initial = TH1F('h_z0_initial',';z_{0} [mm]',50,-4.0e1,-1.0e1)
-                self.h_z0_gbl = TH1F('h_z0_gbl',';z_{0} [mm]',50,-4.0e1,-1.0e1)
-                self.h_clPar_initial_yT = TH1F('h_clPar_initial_yT',';y_{T} (mm)',50,-40.,-10.)
-                self.h_clPar_initial_lambda = TH1F('h_clPar_initial_lambda',';#lambda (rad)',50,-0.08,0.)
+                self.h_z0_initial = TH1F('h_z0_initial'+self.halftag,';z_{0} [mm]',50,-4.0e1,-1.0e1)
+                self.h_z0_gbl = TH1F('h_z0_gbl'+self.halftag,';z_{0} [mm]',50,-4.0e1,-1.0e1)
+                self.h_clPar_initial_yT = TH1F('h_clPar_initial_yT'+self.halftag,';y_{T} (mm)',50,-40.,-10.)
+                self.h_clPar_initial_lambda = TH1F('h_clPar_initial_lambda'+self.halftag,';#lambda (rad)',50,-0.08,0.)
             else: 
-                self.h_z0_initial = TH1F('h_z0_initial',';z_{0} [mm]',50,-4.0e1,4.0e1)
-                self.h_z0_gbl = TH1F('h_z0_gbl',';z_{0} [mm]',50,-4.0e1,4.0e1)
-                self.h_clPar_initial_yT = TH1F('h_clPar_initial_yT',';y_{T} (mm)',50,-40.,40.)
-                self.h_clPar_initial_lambda = TH1F('h_clPar_initial_lambda',';#lambda (rad)',50,-0.1,0.1)
+                self.h_z0_initial = TH1F('h_z0_initial'+self.halftag,';z_{0} [mm]',50,-4.0e1,4.0e1)
+                self.h_z0_gbl = TH1F('h_z0_gbl'+self.halftag,';z_{0} [mm]',50,-4.0e1,4.0e1)
+                self.h_clPar_initial_yT = TH1F('h_clPar_initial_yT'+self.halftag,';y_{T} (mm)',50,-40.,40.)
+                self.h_clPar_initial_lambda = TH1F('h_clPar_initial_lambda'+self.halftag,';#lambda (rad)',50,-0.1,0.1)
         else:
-            self.h_d0_initial = TH1F('h_d0_initial',';d_{0} [mm]',50,-2.0e0,2.0e0)
-            self.h_z0_initial = TH1F('h_z0_initial',';z_{0} [mm]',50,-2.0e0,2.0e0)
-            self.h_d0_gbl = TH1F('h_d0_gbl',';d_{0} [mm]',50,-2.0e0,2.0e0)
-            self.h_z0_gbl = TH1F('h_z0_gbl',';z_{0} [mm]',50,-2.0e0,2.0e0)
-            self.h_clPar_initial_xT = TH1F('h_clPar_initial_xT',';x_{T} (mm)',50,-2.,2.)
-            self.h_clPar_initial_yT = TH1F('h_clPar_initial_yT',';y_{T} (mm)',50,-2.,2.)
-            self.h_clPar_initial_lambda = TH1F('h_clPar_initial_lambda',';#lambda (rad)',50,-0.1,0.1)
-        self.h_clPar_initial_qOverP = TH1F('h_clPar_initial_qOverP',';q/p (1/GeV)',50,-3.,3.)
-        self.h_clPar_initial_phi = TH1F('h_clPar_initial_phi',';#phi (rad)',50,-0.2,0.2)
+            self.h_d0_initial = TH1F('h_d0_initial'+self.halftag,';d_{0} [mm]',50,-3.0e0,3.0e0)
+            self.h_z0_initial = TH1F('h_z0_initial'+self.halftag,';z_{0} [mm]',50,-2.0e0,2.0e0)
+            self.h_d0_gbl = TH1F('h_d0_gbl'+self.halftag,';d_{0} [mm]',50,-3.0e0,3.0e0)
+            self.h_z0_gbl = TH1F('h_z0_gbl'+self.halftag,';z_{0} [mm]',50,-2.0e0,2.0e0)
+            self.h_clPar_initial_xT = TH1F('h_clPar_initial_xT'+self.halftag,';x_{T} (mm)',50,-4.,4.)
+            self.h_clPar_initial_yT = TH1F('h_clPar_initial_yT'+self.halftag,';y_{T} (mm)',50,-2.,2.)
+            self.h_clPar_initial_lambda = TH1F('h_clPar_initial_lambda'+self.halftag,';#lambda (rad)',50,-0.1,0.1)
+        self.h_clPar_initial_qOverP = TH1F('h_clPar_initial_qOverP'+self.halftag,';q/p (1/GeV)',50,-5.,5.)
+        self.h_clPar_initial_phi = TH1F('h_clPar_initial_phi'+self.halftag,';#phi (rad)',50,-0.2,0.2)
 
-        self.h_perPar_res_initial_d0 = TH1F('h_perPar_res_initial_d0',';d0-d0_{truth}',50,-3.0e0,3.0e0)
-        self.h_perPar_res_initial_phi0 = TH1F('h_perPar_res_initial_phi0',';phi0-phi0_{truth}',50,-3.0e-2,3.0e-2)
-        self.h_perPar_res_initial_kappa = TH1F('h_perPar_res_initial_kappa',';kappa-kappa_{truth}',50,-3.0e-5,3.0e-5)
-        self.h_perPar_res_initial_z0 = TH1F('h_perPar_res_initial_z0',';z0-z0_{truth}',50,-3.0e0,3.0e0)
-        self.h_perPar_res_initial_slope = TH1F('h_perPar_res_initial_slope',';slope-slope_{truth}',50,-3.0e-2,3.0e-2)
+        self.h_perPar_res_initial_d0 = TH1F('h_perPar_res_initial_d0'+self.halftag,';d0-d0_{truth}',50,-3.0e0,3.0e0)
+        self.h_perPar_res_initial_phi0 = TH1F('h_perPar_res_initial_phi0'+self.halftag,';phi0-phi0_{truth}',50,-3.0e-2,3.0e-2)
+        self.h_perPar_res_initial_kappa = TH1F('h_perPar_res_initial_kappa'+self.halftag,';kappa-kappa_{truth}',50,-3.0e-5,3.0e-5)
+        self.h_perPar_res_initial_z0 = TH1F('h_perPar_res_initial_z0'+self.halftag,';z0-z0_{truth}',50,-3.0e0,3.0e0)
+        self.h_perPar_res_initial_slope = TH1F('h_perPar_res_initial_slope'+self.halftag,';slope-slope_{truth}',50,-3.0e-2,3.0e-2)
                 
-        self.h_measMsCov = TH2F('h_measMsCov',';Layer;Uncorrelated MS error in meas. dir. (mm)',12,1.,13.,100,0.,7.)
-        self.h_xT_corr = TH2F('h_xT_corr',';Point;x_{T} correction (mm)',24,1.,25.,100,-30.,30.)
-        self.h_yT_corr = TH2F('h_yT_corr',';Point;y_{T} correction (mm)',24,1.,25.,100,-0.3,0.3)
-        self.h_clParGBL_res_xT = TH1F('h_clParGBL_res_xT',';x_{T}-x_{T,truth}',50,-3.0e0,3.0e0)
-        self.h_clParGBL_res_yT = TH1F('h_clParGBL_res_yT',';y_{T}-y_{T,truth}',50,-3.0e0,3.0e0)
-        self.h_clParGBL_res_qOverP = TH1F('h_clParGBL_res_qOverP',';q/p-q/p_{truth}',50,-1.0e0,1.0e0)
-        self.h_clParGBL_res_lambda = TH1F('h_clParGBL_res_lambda',';#lambda-#lambda_{truth}',50,-1.0e-2,1.0e-2)
-        self.h_clParGBL_res_phi = TH1F('h_clParGBL_res_phi',';#phi-#phi_{truth}',50,-1.0e-2,1.0e-2)
+        self.h_measMsCov = TH2F('h_measMsCov'+self.halftag,';Layer;Uncorrelated MS error in meas. dir. (mm)',12,1.,13.,100,0.,7.)
+        self.h_xT_corr = TH2F('h_xT_corr'+self.halftag,';Point;x_{T} correction (mm)',24,1.,25.,100,-30.,30.)
+        self.h_yT_corr = TH2F('h_yT_corr'+self.halftag,';Point;y_{T} correction (mm)',24,1.,25.,100,-0.3,0.3)
+        self.h_clParGBL_res_xT = TH1F('h_clParGBL_res_xT'+self.halftag,';x_{T}-x_{T,truth}',50,-3.0e0,3.0e0)
+        self.h_clParGBL_res_yT = TH1F('h_clParGBL_res_yT'+self.halftag,';y_{T}-y_{T,truth}',50,-3.0e0,3.0e0)
+        self.h_clParGBL_res_qOverP = TH1F('h_clParGBL_res_qOverP'+self.halftag,';q/p-q/p_{truth}',50,-1.0e0,1.0e0)
+        self.h_clParGBL_res_lambda = TH1F('h_clParGBL_res_lambda'+self.halftag,';#lambda-#lambda_{truth}',50,-1.0e-2,1.0e-2)
+        self.h_clParGBL_res_phi = TH1F('h_clParGBL_res_phi'+self.halftag,';#phi-#phi_{truth}',50,-1.0e-2,1.0e-2)
         
-        self.h_clParGBL_pull_xT = TH1F('h_clParGBL_pull_xT',';x_{T}-x_{T,truth}',50,-5.0,5.0)
-        self.h_clParGBL_pull_yT = TH1F('h_clParGBL_pull_yT',';y_{T}-y_{T,truth}',50,-5.0,5.0)
-        self.h_clParGBL_pull_qOverP = TH1F('h_clParGBL_pull_qOverP',';q/p-q/p_{truth}',50,-5.0,5.0)
-        self.h_clParGBL_pull_lambda = TH1F('h_clParGBL_pull_lambda',';#lambda-#lambda_{truth}',50,-5.0,5.0)
-        self.h_clParGBL_pull_phi = TH1F('h_clParGBL_pull_phi',';#phi-#phi_{truth}',50,-5.0,5.0)
+        self.h_clParGBL_pull_xT = TH1F('h_clParGBL_pull_xT'+self.halftag,';x_{T}-x_{T,truth}',50,-5.0,5.0)
+        self.h_clParGBL_pull_yT = TH1F('h_clParGBL_pull_yT'+self.halftag,';y_{T}-y_{T,truth}',50,-5.0,5.0)
+        self.h_clParGBL_pull_qOverP = TH1F('h_clParGBL_pull_qOverP'+self.halftag,';q/p-q/p_{truth}',50,-5.0,5.0)
+        self.h_clParGBL_pull_lambda = TH1F('h_clParGBL_pull_lambda'+self.halftag,';#lambda-#lambda_{truth}',50,-5.0,5.0)
+        self.h_clParGBL_pull_phi = TH1F('h_clParGBL_pull_phi'+self.halftag,';#phi-#phi_{truth}',50,-5.0,5.0)
         self.h_map_res_layer = {}
         self.h_map_res_gbl_layer = {}
         self.h_map_res_truth_layer = {}
@@ -138,7 +148,7 @@ class plotter:
                 l = self.getLayer(deName)
                 xmax = 0.01 + (l-1)*0.6
                 xmin = -1.*xmax
-                h = TH1F('h_res_%s'%deName,'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                h = TH1F('h_res_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_layer[deName] = h
             h.Fill(val)
         elif type=="res_truth":
@@ -148,7 +158,7 @@ class plotter:
                 l = self.getLayer(deName)
                 xmax = 0.01 + (l-1)*0.6
                 xmin = -1.*xmax
-                h = TH1F('h_res_truth_%s'%deName,'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                h = TH1F('h_res_truth_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_truth_layer[deName] = h
             h.Fill(val)
         elif type=="res_gbl":
@@ -158,7 +168,7 @@ class plotter:
                 l = self.getLayer(deName)
                 xmax = 0.01 
                 xmin = -1.*xmax
-                h = TH1F('h_res_gbl_%s'%deName,'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_gbl_layer[deName] = h
             h.Fill(val)
         elif type=="pred_meas":
@@ -166,21 +176,21 @@ class plotter:
                 h = self.h_map_pred_layer[deName]
             else:
                 l = self.getLayer(deName)
-                h = TH2F('h_pred_%s'%deName,'%s;Hit pred. in v (mm);Hit pred. in u (mm)'%deName,20,-60,60,20,-25,25)
+                h = TH2F('h_pred_%s%s'%(deName,self.halftag),'%s;Hit pred. in v (mm);Hit pred. in u (mm)'%deName,20,-60,60,20,-25,25)
                 self.h_map_pred_layer[deName] = h
             h.Fill(val[1],val[0])
         else:
             print "Thus type ius not defined ", type
     
                 
-    def show(self,save):
+    def show(self,save,nopause):
         #if not save:
         #    return
     
 
         gStyle.SetOptStat(111111)
         
-        c_chi2_gbl = TCanvas('c_chi2_gbl','c_chi2_gbl',10,10,690*2,500)
+        c_chi2_gbl = TCanvas('c_chi2_gbl'+self.halftag,'c_chi2_gbl'+self.halftag,10,10,690*2,500)
         c_chi2_gbl.Divide(3,1)
         c_chi2_gbl.cd(1)
         self.h_chi2.Draw()
@@ -191,7 +201,7 @@ class plotter:
 
         if(save): c_chi2_gbl.SaveAs('chi2_gbl%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
-        c_chi2_initial = TCanvas('c_chi2_initial','c_chi2_initial',10,10,690*2,500)
+        c_chi2_initial = TCanvas('c_chi2_initial'+self.halftag,'c_chi2_initial'+self.halftag,10,10,690*2,500)
         c_chi2_initial.Divide(3,1)
         c_chi2_initial.cd(1)
         self.h_chi2_initial.Draw()
@@ -202,7 +212,7 @@ class plotter:
         
         if(save): c_chi2_initial.SaveAs('chi2_initial%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
-        c_chi2_initial_truth = TCanvas('c_chi2_initial_truth','c_chi2_initial_truth',10,10,690*2,500)
+        c_chi2_initial_truth = TCanvas('c_chi2_initial_truth'+self.halftag,'c_chi2_initial_truth'+self.halftag,10,10,690*2,500)
         c_chi2_initial_truth.Divide(3,1)
         c_chi2_initial_truth.cd(1)
         self.h_chi2_initial_truth.Draw()
@@ -213,7 +223,7 @@ class plotter:
         
         if(save): c_chi2_initial_truth.SaveAs('chi2_initial_truth%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
-        c_chi2_gbl_truth = TCanvas('c_chi2_gbl_truth','c_chi2_gbl_truth',10,10,690*2,500)
+        c_chi2_gbl_truth = TCanvas('c_chi2_gbl_truth'+self.halftag,'c_chi2_gbl_truth'+self.halftag,10,10,690*2,500)
         c_chi2_gbl_truth.Divide(3,1)
         c_chi2_gbl_truth.cd(1)
         self.h_chi2_gbl_truth.Draw()
@@ -224,7 +234,7 @@ class plotter:
         
         if(save): c_chi2_gbl_truth.SaveAs('chi2_gbl_truth%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
-        c_track_momentum = TCanvas('c_track_momentum','c_track_momentum',10,10,690*2,500)
+        c_track_momentum = TCanvas('c_track_momentum'+self.halftag,'c_track_momentum'+self.halftag,10,10,690*2,500)
         c_track_momentum.Divide(3,1)
         c_track_momentum.cd(1)
         self.h_p.SetFillStyle(1001);
@@ -243,9 +253,9 @@ class plotter:
         self.h_p_truth.Draw("same")
         f_gbl = self.h_p_gbl.GetFunction("gaus")
         if f_gbl != None:
-            myText(0.7,0.63,"%.2f#sigma%.2f"% (f_gbl.GetParameter(1),f_gbl.GetParameter(2)),0.05,1)
+            myText(0.7,0.63,"%.2f#sigma%.2f"% (f_gbl.GetParameter(1),f_gbl.GetParameter(2)),0.05,2)
         if self.h_p.GetFunction("gaus") != None:
-            myText(0.7,0.55,"%.2f#sigma%.2f"% (self.h_p.GetFunction("gaus").GetParameter(1),self.h_p.GetFunction("gaus").GetParameter(2)),0.05,1)        
+            myText(0.7,0.55,"%.2f#sigma%.2f"% (self.h_p.GetFunction("gaus").GetParameter(1),self.h_p.GetFunction("gaus").GetParameter(2)),0.05,4)        
         c_track_momentum.cd(2)
         self.h_qOverP.SetFillStyle(1001);
         self.h_qOverP.SetFillColor(4);
@@ -261,7 +271,7 @@ class plotter:
         
         if(save): c_track_momentum.SaveAs('track_momentum%s.%s'%(self.getTag(),self.picExt),self.picExt)
                         
-        c_track_momentum_res = TCanvas('c_track_momentum_res','c_track_momentum_res',10,10,690,490)
+        c_track_momentum_res = TCanvas('c_track_momentum_res'+self.halftag,'c_track_momentum_res'+self.halftag,10,10,690,490)
         c_track_momentum_res.Divide(2,2)
         c_track_momentum_res.cd(1)
         self.h_p_truth_res.Fit('gaus','Q')
@@ -286,7 +296,7 @@ class plotter:
         
         if(save): c_track_momentum_res.SaveAs('track_momentum_resolution%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
-        c_track_momentum_res_vs_p = TCanvas('c_track_momentum_res_vs_p','c_track_momentum_res_vs_p',10,10,690,490)
+        c_track_momentum_res_vs_p = TCanvas('c_track_momentum_res_vs_p'+self.halftag,'c_track_momentum_res_vs_p'+self.halftag,10,10,690,490)
         c_track_momentum_res_vs_p.Divide(2,2)
         c_track_momentum_res_vs_p.cd(1)
         self.h_p_truth_res_vs_p.Draw('colz')
@@ -359,7 +369,7 @@ class plotter:
         
         
         
-        c_vtx_corr = TCanvas('c_vtx_corr','c_vtx_corr',10,10,690,490)
+        c_vtx_corr = TCanvas('c_vtx_corr'+self.halftag,'c_vtx_corr'+self.halftag,10,10,690,490)
         c_vtx_corr.Divide(2,2)
         c_vtx_corr.cd(1)
         self.h_vtx_xT_corr.Draw()
@@ -372,12 +382,13 @@ class plotter:
 
         if(save): c_vtx_corr.SaveAs('vtx_correction%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
-        c_impactParameters_corr = TCanvas('c_impactParameters_corr','c_impactParameters_corr',10,10,690,490)
+        c_impactParameters_corr = TCanvas('c_impactParameters_corr'+self.halftag,'c_impactParameters_corr'+self.halftag,10,10,690,490)
         c_impactParameters_corr.Divide(2,2)
         c_impactParameters_corr.cd(1)
         self.h_d0_initial.Fit('gaus','Q')
         self.h_d0_initial.Draw()
         if self.h_d0_initial.GetFunction('gaus') != None:
+            myText(0.6,0.76,'mean=%.3f'%self.h_d0_initial.GetFunction('gaus').GetParameter(1),0.05,1)
             myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
         else:
             myText(0.6,0.7,'#sigma=?',0.05,1)            
@@ -385,6 +396,7 @@ class plotter:
         self.h_z0_initial.Fit('gaus','Q')
         self.h_z0_initial.Draw()
         if self.h_z0_initial.GetFunction('gaus') != None:
+            myText(0.6,0.76,'mean=%.3f'%self.h_z0_initial.GetFunction('gaus').GetParameter(1),0.05,1)
             myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
         else:
             myText(0.6,0.7,'#sigma=?',0.05,1)                        
@@ -392,6 +404,7 @@ class plotter:
         self.h_d0_gbl.Fit('gaus','Q')
         self.h_d0_gbl.Draw()
         if self.h_d0_gbl.GetFunction('gaus') != None:
+            myText(0.6,0.76,'mean=%.3f'%self.h_d0_gbl.GetFunction('gaus').GetParameter(1),0.05,1)
             myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
         else:
             myText(0.6,0.7,'#sigma=?',0.05,1)                                    
@@ -399,13 +412,14 @@ class plotter:
         self.h_z0_gbl.Fit('gaus','Q')
         self.h_z0_gbl.Draw()
         if self.h_z0_gbl.GetFunction('gaus') != None:
+            myText(0.6,0.7,'mean=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(1),0.05,1)
             myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
         else:
             myText(0.6,0.7,'#sigma=?',0.05,1)                                                
         
         if(save): c_impactParameters_corr.SaveAs('impactParameters%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
-        c_perPar_res = TCanvas('c_perPar_res_initial','c_perPar_res_initial',10,10,690*2,390)
+        c_perPar_res = TCanvas('c_perPar_res_initial'+self.halftag,'c_perPar_res_initial'+self.halftag,10,10,690*2,390)
         c_perPar_res.Divide(5,1)
         c_perPar_res.cd(1)
         self.h_perPar_res_initial_d0.Draw()
@@ -421,7 +435,7 @@ class plotter:
         if(save): c_perPar_res.SaveAs('perPar_res%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         if self.doDetailed:
-            c_measMsCov = TCanvas('c_measMsCov','c_measMsCov',10,10,690*2,490)
+            c_measMsCov = TCanvas('c_measMsCov'+self.halftag,'c_measMsCov'+self.halftag,10,10,690*2,490)
             c_measMsCov.Divide(2,1)
             c_measMsCov.cd(1)
             self.h_measMsCov.SetStats(False)
@@ -437,7 +451,7 @@ class plotter:
         
         
         if self.doDetailed:
-            c_xT_corr_label = TCanvas('c_xT_corr_label','c_xT_corr_label',10,10,690*2,390)
+            c_xT_corr_label = TCanvas('c_xT_corr_label'+self.halftag,'c_xT_corr_label'+self.halftag,10,10,690*2,390)
             c_xT_corr_label.Divide(2,1)
             c_xT_corr_label.cd(1)
             self.h_xT_corr_prf = self.h_xT_corr.ProfileX()
@@ -458,7 +472,7 @@ class plotter:
             
             if(save): c_xT_corr_label.SaveAs('xT_corr_label%s.%s'%(self.getTag(),self.picExt),self.picExt)
             
-            c_yT_corr_label = TCanvas('c_yT_corr_label','c_yT_corr_label',10,10,690*2,390)
+            c_yT_corr_label = TCanvas('c_yT_corr_label'+self.halftag,'c_yT_corr_label'+self.halftag,10,10,690*2,390)
             c_yT_corr_label.Divide(2,1)
             c_yT_corr_label.cd(1)
             self.h_yT_corr.SetStats(False)
@@ -480,7 +494,7 @@ class plotter:
             if(save): c_yT_corr_label.SaveAs('yT_corr_label%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
-        c_clPar_initial = TCanvas('c_clPar_initial','c_clPar_initial',10,10,690*2,390)
+        c_clPar_initial = TCanvas('c_clPar_initial'+self.halftag,'c_clPar_initial'+self.halftag,10,10,690*2,390)
         c_clPar_initial.Divide(5,1)
         c_clPar_initial.cd(1)
         self.h_clPar_initial_xT.Draw()
@@ -496,7 +510,7 @@ class plotter:
         if(save): c_clPar_initial.SaveAs('clPar_initial%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
-        c_clParGBL_res = TCanvas('c_clParGBL_res','c_clParGBL_res',10,10,690*2,390)
+        c_clParGBL_res = TCanvas('c_clParGBL_res'+self.halftag,'c_clParGBL_res'+self.halftag,10,10,690*2,390)
         c_clParGBL_res.Divide(5,1)
         c_clParGBL_res.cd(1)
         self.h_clParGBL_res_xT.Draw()
@@ -512,7 +526,7 @@ class plotter:
         if(save): c_clParGBL_res.SaveAs('clParGBL_res%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
-        c_clParGBL_pull = TCanvas('c_clParGBL_pull','c_clParGBL_pull',10,10,690*2,390)
+        c_clParGBL_pull = TCanvas('c_clParGBL_pull'+self.halftag,'c_clParGBL_pull'+self.halftag,10,10,690*2,390)
         c_clParGBL_pull.Divide(5,1)
         c_clParGBL_pull.cd(1)
         self.h_clParGBL_pull_xT.Draw()
@@ -529,7 +543,7 @@ class plotter:
         
         
         if self.doDetailed:
-            c_res_example = TCanvas('c_res_example','c_res_example',10,10,690*2,490)
+            c_res_example = TCanvas('c_res_example'+self.halftag,'c_res_example'+self.halftag,10,10,690*2,490)
             leg_res_example = TLegend(0.12,0.6,0.27,0.9)
             c_res_example.cd(1)
             self.gr_ures_truth.SetTitle('Example track fit;Path length (mm);Residual in measured direction (mm)')
@@ -563,9 +577,9 @@ class plotter:
             if(save): c_res_example.SaveAs('res_example%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
-        c_res_initial_sensor = TCanvas('c_res_initial_sensor','c_res_initial_sensor',10,10,690*2,390*2)
+        c_res_initial_sensor = TCanvas('c_res_initial_sensor'+self.halftag,'c_res_initial_sensor'+self.halftag,10,10,690*2,390*2)
         c_res_initial_sensor.Divide(6,3)
-        c_res_initial_sensor_mean = TCanvas('c_res_initial_sensor_mean','c_res_initial_sensor_mean',10,10,690*2,390*2)
+        c_res_initial_sensor_mean = TCanvas('c_res_initial_sensor_mean'+self.halftag,'c_res_initial_sensor_mean'+self.halftag,10,10,690*2,390*2)
         gr_res_initial_sensor_mean = TGraphErrors()
         gr_res_initial_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
         i = 1
@@ -581,9 +595,9 @@ class plotter:
             i=i+1
         
 
-        c_res_gbl_sensor = TCanvas('c_res_gbl_sensor','c_res_gbl_sensor',10,10,690*2,390*2)
+        c_res_gbl_sensor = TCanvas('c_res_gbl_sensor'+self.halftag,'c_res_gbl_sensor'+self.halftag,10,10,690*2,390*2)
         c_res_gbl_sensor.Divide(6,3)
-        c_res_gbl_sensor_mean = TCanvas('c_res_gbl_sensor_mean','c_res_gbl_sensor_mean',10,10,690*2,390*2)
+        c_res_gbl_sensor_mean = TCanvas('c_res_gbl_sensor_mean'+self.halftag,'c_res_gbl_sensor_mean'+self.halftag,10,10,690*2,390*2)
         gr_res_gbl_sensor_mean = TGraphErrors()
         gr_res_gbl_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
         i = 1
@@ -601,9 +615,9 @@ class plotter:
 
 
 
-        c_res_truth_sensor = TCanvas('c_res_truth_sensor','c_res_truth_sensor',10,10,690*2,390*2)
+        c_res_truth_sensor = TCanvas('c_res_truth_sensor'+self.halftag,'c_res_truth_sensor'+self.halftag,10,10,690*2,390*2)
         c_res_truth_sensor.Divide(6,3)
-        c_res_truth_sensor_mean = TCanvas('c_res_truth_sensor_mean','c_res_truth_sensor_mean',10,10,690*2,390*2)
+        c_res_truth_sensor_mean = TCanvas('c_res_truth_sensor_mean'+self.halftag,'c_res_truth_sensor_mean'+self.halftag,10,10,690*2,390*2)
         gr_res_truth_sensor_mean = TGraphErrors()
         gr_res_truth_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
         i = 1
@@ -634,7 +648,7 @@ class plotter:
 
 
 
-        c_pred_sensor = TCanvas('c_pred_sensor','c_pred_sensor',10,10,690*2,390*2)
+        c_pred_sensor = TCanvas('c_pred_sensor'+self.halftag,'c_pred_sensor'+self.halftag,10,10,690*2,390*2)
         c_pred_sensor.Divide(6,3)
         i = 1
         ms = sorted(self.h_map_pred_layer,key=self.getLayer)
@@ -658,8 +672,9 @@ class plotter:
         if(save): c_pred_sensor.SaveAs('pred_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         if(save): saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())
-        
-        ans = raw_input('press any key to continue')
+
+        if not nopause:
+            ans = raw_input('press any key to continue')
 
 
 
@@ -683,7 +698,7 @@ def saveHistosToFile(direc,fileName):
         if not obj:
             break
         if obj.InheritsFrom('TH1'):
-            #print 'Writing %s' % obj.GetName()
+            #print 'Writing %s' % obj.GetName()`
             outfile.cd()
             obj.Write()
             n=n+1
