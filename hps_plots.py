@@ -412,7 +412,7 @@ class plotter:
         self.h_z0_gbl.Fit('gaus','Q')
         self.h_z0_gbl.Draw()
         if self.h_z0_gbl.GetFunction('gaus') != None:
-            myText(0.6,0.7,'mean=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(1),0.05,1)
+            myText(0.6,0.76,'mean=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(1),0.05,1)
             myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
         else:
             myText(0.6,0.7,'#sigma=?',0.05,1)                                                
