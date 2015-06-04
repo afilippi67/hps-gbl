@@ -14,7 +14,7 @@ def getHistograms(direc):
         if not key:
             break
         obj = key.ReadObj()
-        if obj.InheritsFrom('TH1'):
+        if obj.InheritsFrom('TH1') and not obj.InheritsFrom('TH2') and not obj.InheritsFrom('TH3'):
             print 'Getting TH1 %s' % obj.GetName()
             histos.append(obj)
     print 'Got ', len(histos), ' TH1s'
