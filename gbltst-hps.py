@@ -384,6 +384,12 @@ def main(args):
 
         if plot is None:
           continue
+
+        # reject some tracks
+        #if abs(track.d0())<2.0:
+        #  continue
+        #if(track.q<0):
+        #  continue
         
         plot.h_clPar_initial_xT.Fill(track.clPar[3])
         plot.h_clPar_initial_yT.Fill(track.clPar[4])
@@ -480,6 +486,8 @@ def main(args):
 
           #residuals
           plot.fillSensorPlots("res", strip.deName, strip.ures)
+          if abs(track.d0())>2.0:
+            plot.fillSensorPlots("res_larged0", strip.deName, strip.ures)
           plot.fillSensorPlots("res_truth", strip.deName, strip.uresTruth)
           # correction to xT,yT from GBL fit
           corr = np.matrix( [result.locPar[iLabel][3], result.locPar[iLabel][4] ] )
@@ -487,7 +495,9 @@ def main(args):
           corr_meas = np.matrix( proL2m_list[strip.id] ) * np.transpose( np.matrix( corr ) )
           ures_gbl = strip.ures - corr_meas[0,0] # note minus sign due to definition of residual
           plot.fillSensorPlots("res_gbl", strip.deName, ures_gbl)
-
+          if abs(result.d0_gbl(vtx_idx))>2.0:
+            plot.fillSensorPlots("res_gbl_larged0", strip.deName, ures_gbl)
+            
           # make plots for a given track only
           if nTry==0:
             plot.gr_ures.SetPoint(istrip,strip.pathLen3D,strip.ures)

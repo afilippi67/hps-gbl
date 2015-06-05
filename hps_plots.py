@@ -3,6 +3,7 @@ import sys
 from ROOT import TH1F, TH2F, TGraph, TGraphErrors, TCanvas, TLegend, TLatex, gStyle, gDirectory, TIter, TFile, gPad
 from ROOT import Double as ROOTDouble
 from math import sqrt
+from plotutils import myText
 
 
 
@@ -117,7 +118,9 @@ class plotter:
         self.h_clParGBL_pull_lambda = TH1F('h_clParGBL_pull_lambda'+self.halftag,';#lambda-#lambda_{truth}',50,-5.0,5.0)
         self.h_clParGBL_pull_phi = TH1F('h_clParGBL_pull_phi'+self.halftag,';#phi-#phi_{truth}',50,-5.0,5.0)
         self.h_map_res_layer = {}
+        self.h_map_res_larged0_layer = {}
         self.h_map_res_gbl_layer = {}
+        self.h_map_res_gbl_larged0_layer = {}
         self.h_map_res_truth_layer = {}
         self.h_map_pred_layer = {}
 
@@ -151,6 +154,16 @@ class plotter:
                 h = TH1F('h_res_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_layer[deName] = h
             h.Fill(val)
+        elif type=="res_larged0":
+            if deName in self.h_map_res_larged0_layer:
+                h = self.h_map_res_larged0_layer[deName]
+            else:
+                l = self.getLayer(deName)
+                xmax = 0.01 + (l-1)*0.6
+                xmin = -1.*xmax
+                h = TH1F('h_res_larged0_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                self.h_map_res_larged0_layer[deName] = h
+            h.Fill(val)
         elif type=="res_truth":
             if deName in self.h_map_res_truth_layer:
                 h = self.h_map_res_truth_layer[deName]
@@ -170,6 +183,16 @@ class plotter:
                 xmin = -1.*xmax
                 h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_gbl_layer[deName] = h
+            h.Fill(val)
+        elif type=="res_gbl_larged0":
+            if deName in self.h_map_res_gbl_larged0_layer:
+                h = self.h_map_res_gbl_larged0_layer[deName]
+            else:
+                l = self.getLayer(deName)
+                xmax = 0.01 
+                xmin = -1.*xmax
+                h = TH1F('h_res_gbl_larged0_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                self.h_map_res_gbl_larged0_layer[deName] = h
             h.Fill(val)
         elif type=="pred_meas":
             if deName in self.h_map_pred_layer:
@@ -582,6 +605,9 @@ class plotter:
         c_res_initial_sensor_mean = TCanvas('c_res_initial_sensor_mean'+self.halftag,'c_res_initial_sensor_mean'+self.halftag,10,10,690*2,390*2)
         gr_res_initial_sensor_mean = TGraphErrors()
         gr_res_initial_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
+        c_res_initial_sensor_rms = TCanvas('c_res_initial_sensor_rms'+self.halftag,'c_res_initial_sensor_rms'+self.halftag,10,10,690*2,390*2)
+        gr_res_initial_sensor_rms = TGraphErrors()
+        gr_res_initial_sensor_rms.SetTitle(';Sensor;u residual (mm)')        
         i = 1
         ms = sorted(self.h_map_res_layer,key=self.getLayer)
         for sensor in ms:
@@ -592,14 +618,44 @@ class plotter:
                 ii = gr_res_initial_sensor_mean.GetN()
                 gr_res_initial_sensor_mean.SetPoint(ii,ii,h.GetMean())
                 gr_res_initial_sensor_mean.SetPointError(ii,0.,h.GetMeanError())
+                ii = gr_res_initial_sensor_rms.GetN()
+                gr_res_initial_sensor_rms.SetPoint(ii,ii,h.GetRMS())
+                gr_res_initial_sensor_rms.SetPointError(ii,0.,h.GetRMSError())
             i=i+1
         
+        c_res_larged0_initial_sensor = TCanvas('c_res_larged0_initial_sensor'+self.halftag,'c_res_larged0_initial_sensor'+self.halftag,10,10,690*2,390*2)
+        c_res_larged0_initial_sensor.Divide(6,3)
+        c_res_larged0_initial_sensor_mean = TCanvas('c_res_larged0_initial_sensor_mean'+self.halftag,'c_res_larged0_initial_sensor_mean'+self.halftag,10,10,690*2,390*2)
+        gr_res_larged0_initial_sensor_mean = TGraphErrors()
+        gr_res_larged0_initial_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
+        c_res_larged0_initial_sensor_rms = TCanvas('c_res_larged0_initial_sensor_rms'+self.halftag,'c_res_larged0_initial_sensor_rms'+self.halftag,10,10,690*2,390*2)
+        gr_res_larged0_initial_sensor_rms = TGraphErrors()
+        gr_res_larged0_initial_sensor_rms.SetTitle(';Sensor;u residual (mm)')        
+        i = 1
+        ms = sorted(self.h_map_res_larged0_layer,key=self.getLayer)
+        for sensor in ms:
+            c_res_larged0_initial_sensor.cd(i)
+            h = self.h_map_res_larged0_layer[sensor] 
+            h.Draw()
+            if h.GetEntries() > 0.:
+                ii = gr_res_larged0_initial_sensor_mean.GetN()
+                gr_res_larged0_initial_sensor_mean.SetPoint(ii,ii,h.GetMean())
+                gr_res_larged0_initial_sensor_mean.SetPointError(ii,0.,h.GetMeanError())
+                ii = gr_res_larged0_initial_sensor_rms.GetN()
+                gr_res_larged0_initial_sensor_rms.SetPoint(ii,ii,h.GetRMS())
+                gr_res_larged0_initial_sensor_rms.SetPointError(ii,0.,h.GetRMSError())
+            i=i+1
+        
+
 
         c_res_gbl_sensor = TCanvas('c_res_gbl_sensor'+self.halftag,'c_res_gbl_sensor'+self.halftag,10,10,690*2,390*2)
         c_res_gbl_sensor.Divide(6,3)
         c_res_gbl_sensor_mean = TCanvas('c_res_gbl_sensor_mean'+self.halftag,'c_res_gbl_sensor_mean'+self.halftag,10,10,690*2,390*2)
         gr_res_gbl_sensor_mean = TGraphErrors()
         gr_res_gbl_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
+        c_res_gbl_sensor_rms = TCanvas('c_res_gbl_sensor_rms'+self.halftag,'c_res_gbl_sensor_rms'+self.halftag,10,10,690*2,390*2)
+        gr_res_gbl_sensor_rms = TGraphErrors()
+        gr_res_gbl_sensor_rms.SetTitle(';Sensor;u residual (mm)')        
         i = 1
         ms = sorted(self.h_map_res_gbl_layer,key=self.getLayer)
         for sensor in ms:
@@ -610,6 +666,33 @@ class plotter:
                 ii = gr_res_gbl_sensor_mean.GetN()
                 gr_res_gbl_sensor_mean.SetPoint(ii,ii,h.GetMean())
                 gr_res_gbl_sensor_mean.SetPointError(ii,0.,h.GetMeanError())
+                ii = gr_res_gbl_sensor_rms.GetN()
+                gr_res_gbl_sensor_rms.SetPoint(ii,ii,h.GetRMS())
+                gr_res_gbl_sensor_rms.SetPointError(ii,0.,h.GetRMSError())
+            i=i+1
+        
+
+        c_res_gbl_larged0_sensor = TCanvas('c_res_gbl_larged0_sensor'+self.halftag,'c_res_gbl_larged0_sensor'+self.halftag,10,10,690*2,390*2)
+        c_res_gbl_larged0_sensor.Divide(6,3)
+        c_res_gbl_larged0_sensor_mean = TCanvas('c_res_gbl_larged0_sensor_mean'+self.halftag,'c_res_gbl_larged0_sensor_mean'+self.halftag,10,10,690*2,390*2)
+        gr_res_gbl_larged0_sensor_mean = TGraphErrors()
+        gr_res_gbl_larged0_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
+        c_res_gbl_larged0_sensor_rms = TCanvas('c_res_gbl_larged0_sensor_rms'+self.halftag,'c_res_gbl_larged0_sensor_rms'+self.halftag,10,10,690*2,390*2)
+        gr_res_gbl_larged0_sensor_rms = TGraphErrors()
+        gr_res_gbl_larged0_sensor_rms.SetTitle(';Sensor;u residual (mm)')        
+        i = 1
+        ms = sorted(self.h_map_res_gbl_larged0_layer,key=self.getLayer)
+        for sensor in ms:
+            c_res_gbl_larged0_sensor.cd(i)
+            h = self.h_map_res_gbl_larged0_layer[sensor] 
+            h.Draw()
+            if h.GetEntries() > 0.:
+                ii = gr_res_gbl_larged0_sensor_mean.GetN()
+                gr_res_gbl_larged0_sensor_mean.SetPoint(ii,ii,h.GetMean())
+                gr_res_gbl_larged0_sensor_mean.SetPointError(ii,0.,h.GetMeanError())
+                ii = gr_res_gbl_larged0_sensor_rms.GetN()
+                gr_res_gbl_larged0_sensor_rms.SetPoint(ii,ii,h.GetRMS())
+                gr_res_gbl_larged0_sensor_rms.SetPointError(ii,0.,h.GetRMSError())
             i=i+1
         
 
@@ -638,9 +721,29 @@ class plotter:
         c_res_initial_sensor_mean.cd()
         gr_res_initial_sensor_mean.SetMarkerStyle(20)
         gr_res_initial_sensor_mean.Draw('ALP')
+        c_res_larged0_initial_sensor_mean.cd()
+        gr_res_larged0_initial_sensor_mean.SetMarkerStyle(20)
+        gr_res_larged0_initial_sensor_mean.Draw('ALP')
         c_res_gbl_sensor_mean.cd()
         gr_res_gbl_sensor_mean.SetMarkerStyle(20)
         gr_res_gbl_sensor_mean.Draw('ALP')
+        c_res_gbl_larged0_sensor_mean.cd()
+        gr_res_gbl_larged0_sensor_mean.SetMarkerStyle(20)
+        gr_res_gbl_larged0_sensor_mean.Draw('ALP')
+
+        c_res_initial_sensor_rms.cd()
+        gr_res_initial_sensor_rms.SetMarkerStyle(20)
+        gr_res_initial_sensor_rms.Draw('ALP')
+        c_res_larged0_initial_sensor_rms.cd()
+        gr_res_larged0_initial_sensor_rms.SetMarkerStyle(20)
+        gr_res_larged0_initial_sensor_rms.Draw('ALP')
+        c_res_gbl_sensor_rms.cd()
+        gr_res_gbl_sensor_rms.SetMarkerStyle(20)
+        gr_res_gbl_sensor_rms.Draw('ALP')
+        c_res_gbl_larged0_sensor_rms.cd()
+        gr_res_gbl_larged0_sensor_rms.SetMarkerStyle(20)
+        gr_res_gbl_larged0_sensor_rms.Draw('ALP')
+
         c_res_truth_sensor_mean.cd()
         gr_res_truth_sensor_mean.SetMarkerStyle(20)
         gr_res_truth_sensor_mean.Draw('ALP')
@@ -664,9 +767,17 @@ class plotter:
         
         if(save): c_res_initial_sensor.SaveAs('res_initial_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
         if(save): c_res_initial_sensor_mean.SaveAs('res_initial_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_initial_sensor_rms.SaveAs('res_initial_individual_sensor_rms%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_larged0_initial_sensor.SaveAs('res_larged0_initial_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_larged0_initial_sensor_mean.SaveAs('res_larged0_initial_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_larged0_initial_sensor_rms.SaveAs('res_larged0_initial_individual_sensor_rms%s.%s'%(self.getTag(),self.picExt),self.picExt)
         if(save): c_res_truth_sensor.SaveAs('res_truth_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
         if(save): c_res_gbl_sensor.SaveAs('res_gbl_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
         if(save): c_res_gbl_sensor_mean.SaveAs('res_gbl_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_gbl_sensor_rms.SaveAs('res_gbl_individual_sensor_rms%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_gbl_larged0_sensor.SaveAs('res_gbl_larged0_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_gbl_larged0_sensor_mean.SaveAs('res_gbl_larged0_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
+        if(save): c_res_gbl_larged0_sensor_rms.SaveAs('res_gbl_larged0_individual_sensor_rms%s.%s'%(self.getTag(),self.picExt),self.picExt)
         if(save): c_res_truth_sensor.SaveAs('res_truth_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
         if(save): c_res_truth_sensor_mean.SaveAs('res_truth_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
         if(save): c_pred_sensor.SaveAs('pred_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
@@ -678,12 +789,6 @@ class plotter:
 
 
 
-def myText(x,y,text, tsize,color):
-    l = TLatex()
-    l.SetTextSize(tsize); 
-    l.SetNDC();
-    l.SetTextColor(color);
-    l.DrawLatex(x,y,text);
 
 def saveHistosToFile(direc,fileName):
     iter = TIter(direc.GetList())
