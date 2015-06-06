@@ -10,10 +10,11 @@ import numpy as np
 import math
 import time
 import sys
-import os.path
+import os
 import utils
 import argparse
-sys.path.append('../GeneralBrokenLines/python')
+gblpythonpath = os.getenv('GBL','../GeneralBrokenLines/python')
+sys.path.append(gblpythonpath)
 from gblfit import GblPoint, GblTrajectory
 from hps_plots import plotter
 

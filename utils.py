@@ -55,21 +55,24 @@ class Track:
             return True
         return False
     def pt(self,bfac):
-        return TMath.Abs(bfac * 1.0/self.curvature())
+        #print 'pt: bfac ', bfac, ' C ', self.curvature(), ' -> ', (bfac * 1.0/self.curvature()), ' abs(pt) ', TMath.Abs(bfac * 1.0/self.curvature()), ' ', abs(bfac * 1.0/self.curvature())
+        return abs(bfac * 1.0/self.curvature())
     def p(self,bfac):
         p1 = self.pt(bfac) / sin(self.theta())
+        if p1 == 0.0:
+            print 'Warning p1 = ', p1, ' is zero, q/p params is ', self.clPar[0], ' pt ', self.pt(bfac),  ' sin(th)=', sin(self.theta())
         #cross-check
-        p2 = TMath.Abs(1.0/self.clPar[0])
+        p2 = abs(1.0/self.clPar[0])
         if (p1-p2)/p1 > 0.001:
             print 'Warning p1=%f and p2=%f!!' % ( p1, p2)
             #exit(1)
         return p1
     def pt_truth(self,bfac):
-        return TMath.Abs(bfac * 1.0/self.curvature_truth())
+        return abs(bfac * 1.0/self.curvature_truth())
     def p_truth(self,bfac):
         p1 = self.pt_truth(bfac) / sin(self.theta_truth())
         #cross-check
-        p2 = TMath.Abs(1.0/self.clParTruth[0])
+        p2 = abs(1.0/self.clParTruth[0])
         if (p1-p2)/p1 > 0.001:
             print 'Warning truth p1=%f and p2=%f!!' % (p1,p2)
             #exit(1)
