@@ -3,6 +3,7 @@ import sys
 from ROOT import TH1F, TH2F, TGraph, TGraphErrors, TCanvas, TLegend, TLatex, gStyle, gDirectory, TIter, TFile, gPad
 from ROOT import Double as ROOTDouble
 from math import sqrt
+sys.path.append('pythonutils')
 from plotutils import myText
 
 
