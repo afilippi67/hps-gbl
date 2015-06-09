@@ -763,27 +763,31 @@ class plotter:
         
 
 
-       
-        
-        if(save): c_res_initial_sensor.SaveAs('res_initial_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_initial_sensor_mean.SaveAs('res_initial_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_initial_sensor_rms.SaveAs('res_initial_individual_sensor_rms%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_larged0_initial_sensor.SaveAs('res_larged0_initial_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_larged0_initial_sensor_mean.SaveAs('res_larged0_initial_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_larged0_initial_sensor_rms.SaveAs('res_larged0_initial_individual_sensor_rms%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_truth_sensor.SaveAs('res_truth_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_gbl_sensor.SaveAs('res_gbl_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_gbl_sensor_mean.SaveAs('res_gbl_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_gbl_sensor_rms.SaveAs('res_gbl_individual_sensor_rms%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_gbl_larged0_sensor.SaveAs('res_gbl_larged0_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_gbl_larged0_sensor_mean.SaveAs('res_gbl_larged0_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_gbl_larged0_sensor_rms.SaveAs('res_gbl_larged0_individual_sensor_rms%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_truth_sensor.SaveAs('res_truth_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_res_truth_sensor_mean.SaveAs('res_truth_individual_sensor_mean%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        if(save): c_pred_sensor.SaveAs('pred_individual_sensor%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        
-        if(save): saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())
+        if(save):
+            c_all = TCanvas('c_all'+self.halftag,'c_all'+self.halftag,10,10,690*2,390*2)
+            c_all.Print('gbltst-hps-plots%s.ps['%self.getTag())
+            c_res_initial_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_initial_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_initial_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_initial_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_initial_sensor_rms.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_larged0_initial_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_larged0_initial_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_larged0_initial_sensor_rms.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_truth_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_gbl_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_gbl_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_gbl_sensor_rms.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_gbl_larged0_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_gbl_larged0_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_gbl_larged0_sensor_rms.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_truth_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_truth_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_pred_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_all.Print('gbltst-hps-plots%s.ps]'%self.getTag())
 
+            saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())
+        
         if not nopause:
             ans = raw_input('press any key to continue')
 
