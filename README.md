@@ -11,7 +11,14 @@ Clone the remote repository: (Recommended) git clone https://github.com/perhanss
 Checkout the GBL repository: svn checkout http://svnsrv.desy.de/public/GeneralBrokenLines/tags/V01-15-02 GeneralBrokenLines
 
 Other requirements:
-- numpy
+- numpy, pyROOT
+
+
+Run GBL over 100 events:
+
+python gbltst-hps.py gbloutputfile.gbl -n 100
+
+
 
 Basic help for git usage:
 
