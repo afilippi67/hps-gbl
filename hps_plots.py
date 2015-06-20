@@ -124,6 +124,7 @@ class plotter:
         self.h_map_res_gbl_larged0_layer = {}
         self.h_map_res_truth_layer = {}
         self.h_map_pred_layer = {}
+        self.h_map_iso_layer = {}
 
         self.gr_ures = TGraphErrors()
         self.gr_ures_truth = TGraph()
@@ -203,6 +204,17 @@ class plotter:
                 h = TH2F('h_pred_%s%s'%(deName,self.halftag),'%s;Hit pred. in v (mm);Hit pred. in u (mm)'%deName,20,-60,60,20,-25,25)
                 self.h_map_pred_layer[deName] = h
             h.Fill(val[1],val[0])
+        elif type=="iso":
+            if deName in self.h_map_iso_layer:
+                h = self.h_map_iso_layer[deName]
+            else:
+                l = self.getLayer(deName)
+                h = TH1F('h_iso_%s%s'%(deName,self.halftag),'%s;Strip hit isolation in u (mm);Strip clusters'%deName,43,-2,41)
+                self.h_map_iso_layer[deName] = h
+            if val>999.9:
+                h.Fill(-2.0)
+            else:
+                h.Fill(val)
         else:
             print "Thus type ius not defined ", type
     
@@ -761,7 +773,17 @@ class plotter:
             h = self.h_map_pred_layer[sensor] 
             h.Draw("colz")
             i=i+1
-        
+
+        c_iso_sensor = TCanvas('c_iso_sensor'+self.halftag,'c_iso_sensor'+self.halftag,10,10,690*2,390*2)
+        c_iso_sensor.Divide(6,3)
+        i = 1
+        ms = sorted(self.h_map_iso_layer,key=self.getLayer)
+        for sensor in ms:
+            c_iso_sensor.cd(i)
+            h = self.h_map_iso_layer[sensor] 
+            h.Draw("")
+            i=i+1
+
 
 
         if(save):
@@ -785,6 +807,7 @@ class plotter:
             c_res_truth_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_truth_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_pred_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_iso_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_all.Print('gbltst-hps-plots%s.ps]'%self.getTag())
 
             saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())

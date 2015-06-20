@@ -35,6 +35,7 @@ class Strip:
         self.tDir = []
         self.tPos = []
         self.tPosMeas = []
+        self.iso = 999999.9
 
 class Track:
     def __init__(self,tracknr):
@@ -410,6 +411,8 @@ def readHPSEvents(infile,nEventsMax):
                 strip.tPos.append(float(p))
             #for p in params[3:]:
             #    strip.tPosMeas.append(float(p))
+        elif 'Strip iso ' in line:
+            strip.iso = float(line.split('Strip iso ')[1])
         else:
             print 'ERROR I should never get here line:\n%s' % line
             sys.exit()

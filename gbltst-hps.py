@@ -498,7 +498,9 @@ def main(args):
           plot.fillSensorPlots("res_gbl", strip.deName, ures_gbl)
           if abs(result.d0_gbl(vtx_idx))>2.0:
             plot.fillSensorPlots("res_gbl_larged0", strip.deName, ures_gbl)
-            
+
+          plot.fillSensorPlots("iso", strip.deName, strip.iso)
+
           # make plots for a given track only
           if nTry==0:
             plot.gr_ures.SetPoint(istrip,strip.pathLen3D,strip.ures)
