@@ -1,11 +1,3 @@
-'''
-Simple Test Program for General Broken Lines for HPS.
-
-Created on Jul 27, 2011
-Edited on Jun 20, 2013
-
-@author: kleinwrt, phansson
-'''
 import numpy as np
 import math
 import time
@@ -17,6 +9,15 @@ gblpythonpath = os.getenv('GBL','../GeneralBrokenLines/python')
 sys.path.append(gblpythonpath)
 from gblfit import GblPoint, GblTrajectory
 from hps_plots import plotter
+
+'''
+Simple Test Program for General Broken Lines for HPS.
+
+Created on Jul 27, 2011
+Edited on Jun 20, 2013
+
+@author: kleinwrt, phansson
+'''
 
 #
 
