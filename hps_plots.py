@@ -235,7 +235,6 @@ class plotter:
         c_chi2_gbl.cd(3)
         self.h_chi2prob.Draw()
 
-        if(save): c_chi2_gbl.SaveAs('chi2_gbl%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         c_chi2_initial = TCanvas('c_chi2_initial'+self.halftag,'c_chi2_initial'+self.halftag,10,10,690*2,500)
         c_chi2_initial.Divide(3,1)
@@ -246,7 +245,6 @@ class plotter:
         c_chi2_initial.cd(3)
         self.h_chi2prob_initial.Draw()
         
-        if(save): c_chi2_initial.SaveAs('chi2_initial%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         c_chi2_initial_truth = TCanvas('c_chi2_initial_truth'+self.halftag,'c_chi2_initial_truth'+self.halftag,10,10,690*2,500)
         c_chi2_initial_truth.Divide(3,1)
@@ -257,7 +255,6 @@ class plotter:
         c_chi2_initial_truth.cd(3)
         self.h_chi2prob_initial_truth.Draw()
         
-        if(save): c_chi2_initial_truth.SaveAs('chi2_initial_truth%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         c_chi2_gbl_truth = TCanvas('c_chi2_gbl_truth'+self.halftag,'c_chi2_gbl_truth'+self.halftag,10,10,690*2,500)
         c_chi2_gbl_truth.Divide(3,1)
@@ -268,7 +265,6 @@ class plotter:
         c_chi2_gbl_truth.cd(3)
         self.h_chi2prob_gbl_truth.Draw()
         
-        if(save): c_chi2_gbl_truth.SaveAs('chi2_gbl_truth%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         c_track_momentum = TCanvas('c_track_momentum'+self.halftag,'c_track_momentum'+self.halftag,10,10,690*2,500)
         c_track_momentum.Divide(3,1)
@@ -305,7 +301,6 @@ class plotter:
         c_track_momentum.cd(3)
         self.h_qOverP_corr.Draw()
         
-        if(save): c_track_momentum.SaveAs('track_momentum%s.%s'%(self.getTag(),self.picExt),self.picExt)
                         
         c_track_momentum_res = TCanvas('c_track_momentum_res'+self.halftag,'c_track_momentum_res'+self.halftag,10,10,690,490)
         c_track_momentum_res.Divide(2,2)
@@ -330,7 +325,6 @@ class plotter:
         if self.h_qOverP_truth_res_gbl.GetFunction('gaus') != None:
             myText(0.6,0.7,'#sigma=%.3f'%self.h_qOverP_truth_res_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
         
-        if(save): c_track_momentum_res.SaveAs('track_momentum_resolution%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         c_track_momentum_res_vs_p = TCanvas('c_track_momentum_res_vs_p'+self.halftag,'c_track_momentum_res_vs_p'+self.halftag,10,10,690,490)
         c_track_momentum_res_vs_p.Divide(2,2)
@@ -401,7 +395,6 @@ class plotter:
         gr_vs_p_ratio.Draw('ALP')
         
         
-        if(save): c_track_momentum_res_vs_p.SaveAs('track_momentum_resolution_vs_p%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
         
@@ -416,7 +409,6 @@ class plotter:
         c_vtx_corr.cd(4)
         self.h_z0_corr.Draw()
 
-        if(save): c_vtx_corr.SaveAs('vtx_correction%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         c_impactParameters_corr = TCanvas('c_impactParameters_corr'+self.halftag,'c_impactParameters_corr'+self.halftag,10,10,690,490)
         c_impactParameters_corr.Divide(2,2)
@@ -453,7 +445,6 @@ class plotter:
         else:
             myText(0.6,0.7,'#sigma=?',0.05,1)                                                
         
-        if(save): c_impactParameters_corr.SaveAs('impactParameters%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         c_perPar_res = TCanvas('c_perPar_res_initial'+self.halftag,'c_perPar_res_initial'+self.halftag,10,10,690*2,390)
         c_perPar_res.Divide(5,1)
@@ -468,7 +459,6 @@ class plotter:
         c_perPar_res.cd(5)
         self.h_perPar_res_initial_slope.Draw()
         
-        if(save): c_perPar_res.SaveAs('perPar_res%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         if self.doDetailed:
             c_measMsCov = TCanvas('c_measMsCov'+self.halftag,'c_measMsCov'+self.halftag,10,10,690*2,490)
@@ -543,8 +533,6 @@ class plotter:
         c_clPar_initial.cd(5)
         self.h_clPar_initial_phi.Draw()
         
-        if(save): c_clPar_initial.SaveAs('clPar_initial%s.%s'%(self.getTag(),self.picExt),self.picExt)
-        
         
         c_clParGBL_res = TCanvas('c_clParGBL_res'+self.halftag,'c_clParGBL_res'+self.halftag,10,10,690*2,390)
         c_clParGBL_res.Divide(5,1)
@@ -559,7 +547,6 @@ class plotter:
         c_clParGBL_res.cd(5)
         self.h_clParGBL_res_phi.Draw()
         
-        if(save): c_clParGBL_res.SaveAs('clParGBL_res%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
         c_clParGBL_pull = TCanvas('c_clParGBL_pull'+self.halftag,'c_clParGBL_pull'+self.halftag,10,10,690*2,390)
@@ -575,7 +562,6 @@ class plotter:
         c_clParGBL_pull.cd(5)
         self.h_clParGBL_pull_phi.Draw()
         
-        if(save): c_clParGBL_pull.SaveAs('clParGBL_pull%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
         if self.doDetailed:
@@ -808,6 +794,19 @@ class plotter:
             c_res_truth_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_pred_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_iso_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_chi2_gbl.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_chi2_initial.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_chi2_initial_truth.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_chi2_gbl_truth.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_track_momentum.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_track_momentum_res.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_track_momentum_res_vs_p.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_vtx_corr.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_impactParameters_corr.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_perPar_res.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_clPar_initial.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_clParGBL_res.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_clParGBL_pull.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_all.Print('gbltst-hps-plots%s.ps]'%self.getTag())
 
             saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())
