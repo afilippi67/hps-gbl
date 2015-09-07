@@ -92,6 +92,11 @@ def main(args):
       if args.debug:
         print 'ok'
       
+      # check if it has enough hits
+      if len(track.strips) < args.minStrips:
+        if args.debug:
+          print 'not enough strip clusters'
+        continue
       
 
       # create the trajectory
@@ -349,6 +354,7 @@ def main(args):
       
       if nTry == 0 or args.debug:
         result.printVertexCorr()
+        result.printCorrection()
       
         
 
@@ -488,19 +494,22 @@ def main(args):
 
           #residuals
           plot.fillSensorPlots("res", strip.deName, strip.ures)
-          if abs(track.d0())>2.0:
-            plot.fillSensorPlots("res_larged0", strip.deName, strip.ures)
           plot.fillSensorPlots("res_truth", strip.deName, strip.uresTruth)
+          #track direction corrections
+          point = istrip + 2
+          plot.fillSensorPlots("corr_lambda",strip.deName, result.locPar[point][result.idx_lambda])
+          plot.fillSensorPlots("corrdiff_lambda",strip.deName, result.locPar[point][result.idx_lambda]-result.locPar[point-1][result.idx_lambda])
+          plot.fillSensorPlots("corr_phi",strip.deName, result.locPar[point][result.idx_phi])
+          plot.fillSensorPlots("corrdiff_phi",strip.deName, result.locPar[point][result.idx_phi]-result.locPar[point-1][result.idx_phi])
           # correction to xT,yT from GBL fit
           corr = np.matrix( [result.locPar[iLabel][3], result.locPar[iLabel][4] ] )
           # project to measurement direction
           corr_meas = np.matrix( proL2m_list[strip.id] ) * np.transpose( np.matrix( corr ) )
           ures_gbl = strip.ures - corr_meas[0,0] # note minus sign due to definition of residual
           plot.fillSensorPlots("res_gbl", strip.deName, ures_gbl)
-          if abs(result.d0_gbl(vtx_idx))>2.0:
-            plot.fillSensorPlots("res_gbl_larged0", strip.deName, ures_gbl)
-
           plot.fillSensorPlots("iso", strip.deName, strip.iso)
+
+          
 
           # make plots for a given track only
           if nTry==0:
@@ -528,7 +537,7 @@ def main(args):
     print " Chi2Sum/NdfSum ", Chi2Sum / NdfSum
     print " LostSum/nTry ", LostSum / nTry
   print " Make plots "
-  if nTry > 0:
+  if nTry > 0 and not args.noshow:
     plots.show(args.save,args.nopause)
     plotsTop.show(args.save,args.nopause)
     plotsBot.show(args.save,args.nopause)
@@ -544,8 +553,10 @@ def getArgs():
   parser.add_argument('--mc','-m',action='store_true', help='Simulation input')
   parser.add_argument('--save','-s',action='store_true',help='Save output')
   parser.add_argument('--nopause',action='store_true',help='Require manual input to continue program.')
+  parser.add_argument('--noshow',action='store_true',help='Do not show plots.')
   parser.add_argument('--useuncorrms',action='store_true',help='inflate MS errors instead of using scatterers')
   parser.add_argument('--testrun',action='store_true',help='Test Run input')
+  parser.add_argument('--minStrips',type=int,default=0,help='Minimum number of strip clusters per track')
 
   args = parser.parse_args();
   print args

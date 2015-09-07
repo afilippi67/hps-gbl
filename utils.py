@@ -1,4 +1,4 @@
-import sys
+import sys, re
 import numpy as np
 from math import copysign,cos,atan,tan,pi,sin,asin,copysign
 from ROOT import TMath
@@ -136,6 +136,8 @@ class GBLResults:
         self.locCov = {}
         self.track = track
         self.idx_qoverp = 0
+        self.idx_lambda = 1
+        self.idx_phi = 2
         self.idx_xT = 3
         self.idx_yT = 4
     def addPoint(self,label,locPar,locCov):
@@ -165,8 +167,42 @@ class GBLResults:
         return self.track.z0()+self.z0Corr(label)
     def printVertexCorr(self):
         print "qOverPCorr " + str(self.locPar[1][self.idx_qoverp]) + " xTCorr " + str(self.locPar[1][self.idx_xT]) + " yTCorr " +  str(self.locPar[1][self.idx_yT])  + " xtPrimeCorr " +  str(self.locPar[1][1])  + " yTPrimeCorr " +  str(self.locPar[1][2])
-    
 
+    def getCLParStr(self,point):
+        s = ""
+        for i in range(len(self.locPar[point])):
+            s += "%5s %.10f " % (self.getIdxStr(i), self.locPar[point][i])
+        return s
+    def getIdxStr(self,i):
+        s = ""
+        if i==self.idx_qoverp:
+            s = "q/p"
+        elif i==self.idx_xT:
+            s = "xT"
+        elif i==self.idx_yT:
+            s = "yT"
+        elif i==self.idx_lambda:
+            s = "lambda"
+        elif i==self.idx_phi:
+            s = "phi"
+        else:
+            print "ERROR, invalid idx", i, " quit"
+            sys.exit(1)
+        return s
+    
+    def printCorrection(self):
+        print "\n==========="
+        print "\nPrint corrections to curvilinear parameters on each side of scatterers"
+        for i in range(1, len(self.locPar)/2 + 1):                  
+            #for point,correction in self.locPar.iteritems():
+            point = -i
+            print "%3d %s" % (point, self.getCLParStr(point))
+            point = i
+            print "%3d %s" % (point, self.getCLParStr(point))
+        print "\n==========="
+
+
+        
 #def rotateGlToMeas(strip,vector):
 #    rotMat = np.array([strip.u, strip.v, strip.w])
 #    rotVector = np.dot(vector,rotMat)
@@ -659,3 +695,54 @@ def getXPlanePositionIterative(parameters,origin,normal,eps=0.0001):
         #print  nIter,' d ', d, ' pos ', pos, ' dx ', dx
         nIter +=  1
     return pos
+
+
+def getLayer( deName):
+    m = re.search("_L(\d)\S_", deName)
+    if m!=None:            
+        l = m.group(1)
+        il = int(l)
+        return il
+    else:
+        print "Cannot extract layer number from deName ", deName
+        sys.exit(1)
+
+def getHalf( deName):
+    m = re.search("_L\d(\S)_", deName)
+    if m!=None:            
+        return m.group(1)
+    else:
+        print "Cannot extract half from deName ", deName
+        sys.exit(1)
+
+def getAxialStereo( deName):
+    l = getLayer(deName)
+    if l < 4:
+        m = re.search("_halfmodule_(\S+)_sensor", deName)
+    else:
+        m = re.search("_halfmodule_(\S+)_\S+_sensor", deName)
+    if m!=None:            
+        return m.group(1)
+    else:
+        print "Cannot extract axial or stereo from deName ", deName
+        sys.exit(1)
+
+def getHoleSlot( deName):
+    l = getLayer(deName)
+    if l < 4:
+        return None
+    else:
+        m = re.search("halfmodule_\S+_(\S+)_sensor", deName)
+        if m!=None:            
+            return m.group(1)
+        else:
+            print "Cannot extract axial or stereo from deName ", deName
+            sys.exit(1)
+
+
+
+def setGraphXLabels(gr,idToName):
+    h = gr.GetHistogram()
+    for i,name in idToName.iteritems():
+        b = h.FindBin(i)
+        h.GetXaxis().SetBinLabel(b, name )
