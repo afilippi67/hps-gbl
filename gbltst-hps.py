@@ -185,8 +185,8 @@ def main(args):
           uPredIter = np.dot(strip.u , diffTrk.T)
           uResIter = strip.meas - uPredIter
           if abs(uResIter - strip.ures) > 1.0e-6:
-            print 'WARNING diff %.10f uResIter %.10f compared to %.10f' % (abs(uResIter - strip.ures),uResIter,strip.ures)
-            print predIter,strip.origin,diffTrk,strip.u,diffTrk.T
+            print 'WARNING diff %.10f uResIter %.10f compared to %.10f' % (uResIter - strip.ures,uResIter,strip.ures)
+            print 'predIter ', predIter, ' origin ', strip.origin, ' diffTrk ',diffTrk,' u ', strip.u, ' diffTrk ',diffTrk.T
             sys.exit(1)
         
 

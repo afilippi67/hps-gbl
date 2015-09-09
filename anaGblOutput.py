@@ -4,13 +4,14 @@ import sys, os, re
 import argparse
 from ROOT import TFile, TH1F, TF1, TCanvas, gDirectory, TGraph
 sys.path.append('pythonutils')
+import utils as gblUtils
 from plotutils import myText
 from plotutils import  setBinLabels
 import compareRootHists 
 
 def getArgs():
     parser = argparse.ArgumentParser(description='Run comparison')
-    parser.add_argument('--file','-f',required=True,help='Input file.')
+    parser.add_argument('--file','-f',nargs='+',help='Input files.')
     parser.add_argument('--tag','-t',default='',help='Tag to output files.')
     args = parser.parse_args();
     print args
@@ -139,25 +140,83 @@ def plotResiduals(f,name,half):
 
 
 
+
+def getSensorNames():
+    names = []
+    for l in [1,2,3,4,5,6]:
+        for h in ['t', 'b']:
+            for t in ['axial','stereo']:
+                name = ''
+                if l > 3:
+                    for s in ['hole','slot']:
+                        name = 'module_L%d%s_halfmodule_%s_%s_sensor0' % (l, h, t,s)
+                        names.append(name)
+                else:
+                    name = 'module_L%d%s_halfmodule_%s_sensor0' % (l, h, t)
+                    names.append(name)
+    return names
+
+def compareSensorHists(files,histName,tag=''):
+    print 'compareSensorHists for ', len(files), ' for histName ', histName, ' tag ', tag
+    sensorHistNames = []
+    sensors = getSensorNames()
+    for s in sensors:
+        addOn = ''
+        if gblUtils.getHalf(s) == 't':
+            addOn = '_top'
+        else:
+            addOn = '_bot'
+        sensorHistNames.append(histName + s + addOn)
+    print sensorHistNames
+    print 'open TFiles'
+    tFiles = []
+    for f in files:
+        tFiles.append(TFile(f))
+    print 'opened ', len(tFiles)
+    for hName in sensorHistNames:
+        histos = []
+        print 'get ', hName
+        for tf in tFiles:
+            print 'tf ', tf.GetName()
+            h = tf.Get(hName)
+            histos.append(h)
+        print 'compare ', len(histos),' root histos'
+        compareRootHists.compareHists(histos,legends=None,normalize=None,fitName='gaus',t=tag)
+        print 'done comparing ', len(histos),' root histos'
+    for tf in tFiles:        
+        print 'closing ', tf.GetName()
+        tf.Close()
+
+
+
+def compareGblHists(files,tag):
+    print 'compareGblHists for ', len(files), ' files'
+    compareSensorHists(files,'h_res_gbl_',tag)
+
+
 def main(args):
 
-    f = TFile(args.file)
+    if len(args.file)==1:
 
-    #fitMom(f,'h_p')
-    #fitMom(f,'h_p_gbl')
-    #fitMom(f,'h_p_top')
-    #fitMom(f,'h_p_gbl_top')
-    #fitMom(f,'h_p_bot')
-    #fitMom(f,'h_p_gbl_bot')
+        f = TFile(args.file)
+        #fitMom(f,'h_p')
+        #fitMom(f,'h_p_gbl')
+        #fitMom(f,'h_p_top')
+        #fitMom(f,'h_p_gbl_top')
+        #fitMom(f,'h_p_bot')
+        #fitMom(f,'h_p_gbl_bot')
+        #plotResiduals(f,'h_res','top')
+        #plotResiduals(f,'h_res','bot')
+        #plotResiduals(f,'h_res_gbl','top')
+        #plotResiduals(f,'h_res_gbl','bot')
+        ans = raw_input('continue?')
+        f.Close()
 
-    plotResiduals(f,'h_res','top')
-    plotResiduals(f,'h_res','bot')
-    plotResiduals(f,'h_res_gbl','top')
-    plotResiduals(f,'h_res_gbl','bot')
 
-    ans = raw_input('continue?')
+    if len(args.file)>1:
+
+        compareGblHists(args.file,args.tag)
     
-    f.Close()
 
 
 

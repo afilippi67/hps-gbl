@@ -697,6 +697,21 @@ def getXPlanePositionIterative(parameters,origin,normal,eps=0.0001):
     return pos
 
 
+def getSensorNames():
+    names = []
+    for l in [1,2,3,4,5,6]:
+        for h in ['t', 'b']:
+            for t in ['axial','stereo']:
+                name = ''
+                if l > 3:
+                    for s in ['hole','slot']:
+                        name = 'module_L%d%s_halfmodule_%s_%s_sensor0' % (l, h, t,s)
+                        names.append(name)
+                else:
+                    name = 'module_L%d%s_halfmodule_%s_sensor0' % (l, h, t)
+                    names.append(name)
+    return names
+
 def getLayer( deName):
     m = re.search("_L(\d)\S_", deName)
     if m!=None:            
@@ -746,3 +761,156 @@ def setGraphXLabels(gr,idToName):
     for i,name in idToName.iteritems():
         b = h.FindBin(i)
         h.GetXaxis().SetBinLabel(b, name )
+
+
+def getCanvasIdxThreeCols(sensor):
+    l = getLayer(sensor)
+    half = getHalf(sensor)
+    side = getHoleSlot(sensor)
+    stereoname = getAxialStereo(sensor)
+    print sensor, " -> ", l, " / ", half, " / ", stereoname, " / ", side
+
+    i = -1
+    if l < 4:
+        if half=='t':
+            if stereoname=='axial':
+                if l == 1:
+                    i = 2
+                elif l == 2:
+                    i = 8
+                else:
+                    i = 14
+            else:
+                if l == 1:
+                    i = 5
+                elif l == 2:
+                    i = 11
+                else:
+                    i = 17
+        else:
+            if stereoname=='stereo':
+                if l == 1:
+                    i = 2
+                elif l == 2:
+                    i = 8
+                else:
+                    i = 14
+            else:
+                if l == 1:
+                    i = 5
+                elif l == 2:
+                    i = 11
+                else:
+                    i = 17
+    else:
+        if half=='t':
+            if stereoname=='axial':
+                if side == 'hole':
+                    if l == 4:
+                        i = 19
+                    elif l == 5:
+                        i = 25
+                    else:
+                        i = 31
+                else:
+                    if l == 4:
+                        i = 21
+                    elif l == 5:
+                        i = 27
+                    else:
+                        i = 33
+            else:
+                if side == 'hole':
+                    if l == 4:
+                        i = 21
+                    elif l == 5:
+                        i = 22
+                    else:
+                        i = 28
+                else:
+                    if l == 4:
+                        i = 24
+                    elif l == 5:
+                        i = 30
+                    else:
+                        i = 36
+        else:
+            if stereoname=='stereo':
+                if side == 'hole':
+                    if l == 4:
+                        i = 19
+                    elif l == 5:
+                        i = 25
+                    else:
+                        i = 31
+                else:
+                    if l == 4:
+                        i = 21
+                    elif l == 5:
+                        i = 27
+                    else:
+                        i = 33
+            else:
+                if side == 'hole':
+                    if l == 4:
+                        i = 21
+                    elif l == 5:
+                        i = 22
+                    else:
+                        i = 28
+                else:
+                    if l == 4:
+                        i = 24
+                    elif l == 5:
+                        i = 30
+                    else:
+                        i = 36
+        
+    print sensor, " -> ", i
+    return i
+
+
+
+def getCanvasIdxTwoCols(sensor):
+    l = getLayer(sensor)
+    half = getHalf(sensor)
+    side = getHoleSlot(sensor)
+    stereoname = getAxialStereo(sensor)
+    i = -1
+    if l < 4:
+        if half=='t':
+            if stereoname=='axial':
+                i = (l-1)*4+1
+            else:
+                i = (l-1)*4+3
+        else:
+            if stereoname=='stereo':
+                i = (l-1)*4+1
+            else:
+                i = (l-1)*4+3
+    else:
+        if half=='t':
+            if stereoname=='axial':
+                if side == 'hole':
+                    i = (l-1)*4+1
+                else:
+                    i = (l-1)*4+2
+            else:
+                if side == 'hole':
+                    i = (l-1)*4+3
+                else:
+                    i = (l-1)*4+4
+        else:
+            if stereoname=='stereo':
+                if side == 'hole':
+                    i = (l-1)*4+1
+                else:
+                    i = (l-1)*4+2
+            else:
+                if side == 'hole':
+                    i = (l-1)*4+3
+                else:
+                    i = (l-1)*4+4
+    
+    print sensor, " -> layer ", l, " / ", half, " / ", stereoname, " / ", side, "   ==>  ", i
+    return i

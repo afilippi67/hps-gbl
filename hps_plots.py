@@ -4,7 +4,7 @@ from ROOT import Double as ROOTDouble
 from math import sqrt
 sys.path.append('pythonutils')
 from plotutils import myText
-from utils import getLayer, getHalf, getAxialStereo,getHoleSlot,setGraphXLabels
+from utils import getLayer, getHalf, getAxialStereo,getHoleSlot,setGraphXLabels,getCanvasIdxTwoCols
 
 
 
@@ -729,10 +729,18 @@ class plotter:
                 f = h.GetFunction("gaus")
                 if f != None:
                     ii = gr_corr_lambda_sensor_mean.GetN()
+                    dm = f.GetParError(1)
+                    if dm > 0.5:
+                        print 'WARNING: fit for ', h.GetName(), ' has a large error ', dm, '. Set to zero.'
+                        dm = 0.0
+                    ds = f.GetParError(2)
+                    if ds > 0.5:
+                        print 'WARNING: fit for ', h.GetName(), ' has a large error ', ds, '. Set to zero.'
+                        ds = 0.0
                     gr_corr_lambda_sensor_mean.SetPoint(ii,ii,f.GetParameter(1))
-                    gr_corr_lambda_sensor_mean.SetPointError(ii,0.,f.GetParError(1))
+                    gr_corr_lambda_sensor_mean.SetPointError(ii,0.,dm)
                     gr_corr_lambda_sensor_rms.SetPoint(ii,ii,f.GetParameter(2))
-                    gr_corr_lambda_sensor_rms.SetPointError(ii,0.,f.GetParError(2))
+                    gr_corr_lambda_sensor_rms.SetPointError(ii,0.,ds)
                     idToSensor[ii] = sensor
 
             i=i+1
@@ -765,10 +773,19 @@ class plotter:
                 f = h.GetFunction("gaus")
                 if f != None:                    
                     ii = gr_corrdiff_lambda_sensor_mean.GetN()
+                    dm = f.GetParError(1)
+                    if dm > 0.5:
+                        print 'WARNING: fit for ', h.GetName(), ' has a large error ', dm, '. Set to zero.'
+                        dm = 0.0
+                    ds = f.GetParError(2)
+                    if ds > 0.5:
+                        print 'WARNING: fit for ', h.GetName(), ' has a large error ', ds, '. Set to zero.'
+                        ds = 0.0
+
                     gr_corrdiff_lambda_sensor_mean.SetPoint(ii,ii,f.GetParameter(1))
-                    gr_corrdiff_lambda_sensor_mean.SetPointError(ii,0.,f.GetParError(1))
+                    gr_corrdiff_lambda_sensor_mean.SetPointError(ii,0.,dm)
                     gr_corrdiff_lambda_sensor_rms.SetPoint(ii,ii,f.GetParameter(2))
-                    gr_corrdiff_lambda_sensor_rms.SetPointError(ii,0.,f.GetParError(2))
+                    gr_corrdiff_lambda_sensor_rms.SetPointError(ii,0.,ds)
                     idToSensor[ii] = sensor
             i=i+1
         
@@ -801,10 +818,18 @@ class plotter:
                 f = h.GetFunction("gaus")
                 if f != None:
                     ii = gr_corr_phi_sensor_mean.GetN()
+                    dm = f.GetParError(1)
+                    if dm > 0.5:
+                        print 'WARNING: fit for ', h.GetName(), ' has a large error ', dm, '. Set to zero.'
+                        dm = 0.0
+                    ds = f.GetParError(2)
+                    if ds > 0.5:
+                        print 'WARNING: fit for ', h.GetName(), ' has a large error ', ds, '. Set to zero.'
+                        ds = 0.0
                     gr_corr_phi_sensor_mean.SetPoint(ii,ii,f.GetParameter(1))
-                    gr_corr_phi_sensor_mean.SetPointError(ii,0.,f.GetParError(1))
+                    gr_corr_phi_sensor_mean.SetPointError(ii,0.,dm)
                     gr_corr_phi_sensor_rms.SetPoint(ii,ii,f.GetParameter(2))
-                    gr_corr_phi_sensor_rms.SetPointError(ii,0.,f.GetParError(2))
+                    gr_corr_phi_sensor_rms.SetPointError(ii,0.,ds)
                     idToSensor[ii] = sensor
 
             i=i+1
@@ -837,10 +862,18 @@ class plotter:
                 f = h.GetFunction("gaus")
                 if f != None:                    
                     ii = gr_corrdiff_phi_sensor_mean.GetN()
+                    dm = f.GetParError(1)
+                    if dm > 0.5:
+                        print 'WARNING: fit for ', h.GetName(), ' has a large error ', dm, '. Set to zero.'
+                        dm = 0.0
+                    ds = f.GetParError(2)
+                    if ds > 0.5:
+                        print 'WARNING: fit for ', h.GetName(), ' has a large error ', ds, '. Set to zero.'
+                        ds = 0.0
                     gr_corrdiff_phi_sensor_mean.SetPoint(ii,ii,f.GetParameter(1))
-                    gr_corrdiff_phi_sensor_mean.SetPointError(ii,0.,f.GetParError(1))
+                    gr_corrdiff_phi_sensor_mean.SetPointError(ii,0.,dm)
                     gr_corrdiff_phi_sensor_rms.SetPoint(ii,ii,f.GetParameter(2))
-                    gr_corrdiff_phi_sensor_rms.SetPointError(ii,0.,f.GetParError(2))
+                    gr_corrdiff_phi_sensor_rms.SetPointError(ii,0.,ds)
                     idToSensor[ii] = sensor
             i=i+1
         
@@ -1032,156 +1065,4 @@ def saveHistosToFile(direc,fileName):
 
 
 
-def getCanvasIdxThreeCols(sensor):
-    l = getLayer(sensor)
-    half = getHalf(sensor)
-    side = getHoleSlot(sensor)
-    stereoname = getAxialStereo(sensor)
-    print sensor, " -> ", l, " / ", half, " / ", stereoname, " / ", side
-
-    i = -1
-    if l < 4:
-        if half=='t':
-            if stereoname=='axial':
-                if l == 1:
-                    i = 2
-                elif l == 2:
-                    i = 8
-                else:
-                    i = 14
-            else:
-                if l == 1:
-                    i = 5
-                elif l == 2:
-                    i = 11
-                else:
-                    i = 17
-        else:
-            if stereoname=='stereo':
-                if l == 1:
-                    i = 2
-                elif l == 2:
-                    i = 8
-                else:
-                    i = 14
-            else:
-                if l == 1:
-                    i = 5
-                elif l == 2:
-                    i = 11
-                else:
-                    i = 17
-    else:
-        if half=='t':
-            if stereoname=='axial':
-                if side == 'hole':
-                    if l == 4:
-                        i = 19
-                    elif l == 5:
-                        i = 25
-                    else:
-                        i = 31
-                else:
-                    if l == 4:
-                        i = 21
-                    elif l == 5:
-                        i = 27
-                    else:
-                        i = 33
-            else:
-                if side == 'hole':
-                    if l == 4:
-                        i = 21
-                    elif l == 5:
-                        i = 22
-                    else:
-                        i = 28
-                else:
-                    if l == 4:
-                        i = 24
-                    elif l == 5:
-                        i = 30
-                    else:
-                        i = 36
-        else:
-            if stereoname=='stereo':
-                if side == 'hole':
-                    if l == 4:
-                        i = 19
-                    elif l == 5:
-                        i = 25
-                    else:
-                        i = 31
-                else:
-                    if l == 4:
-                        i = 21
-                    elif l == 5:
-                        i = 27
-                    else:
-                        i = 33
-            else:
-                if side == 'hole':
-                    if l == 4:
-                        i = 21
-                    elif l == 5:
-                        i = 22
-                    else:
-                        i = 28
-                else:
-                    if l == 4:
-                        i = 24
-                    elif l == 5:
-                        i = 30
-                    else:
-                        i = 36
-        
-    print sensor, " -> ", i
-    return i
-
-
-
-def getCanvasIdxTwoCols(sensor):
-    l = getLayer(sensor)
-    half = getHalf(sensor)
-    side = getHoleSlot(sensor)
-    stereoname = getAxialStereo(sensor)
-    i = -1
-    if l < 4:
-        if half=='t':
-            if stereoname=='axial':
-                i = (l-1)*4+1
-            else:
-                i = (l-1)*4+3
-        else:
-            if stereoname=='stereo':
-                i = (l-1)*4+1
-            else:
-                i = (l-1)*4+3
-    else:
-        if half=='t':
-            if stereoname=='axial':
-                if side == 'hole':
-                    i = (l-1)*4+1
-                else:
-                    i = (l-1)*4+2
-            else:
-                if side == 'hole':
-                    i = (l-1)*4+3
-                else:
-                    i = (l-1)*4+4
-        else:
-            if stereoname=='stereo':
-                if side == 'hole':
-                    i = (l-1)*4+1
-                else:
-                    i = (l-1)*4+2
-            else:
-                if side == 'hole':
-                    i = (l-1)*4+3
-                else:
-                    i = (l-1)*4+4
-    
-    #print sensor, " -> ", i
-    print sensor, " -> layer ", l, " / ", half, " / ", stereoname, " / ", side, "   ==>  ", i
-    return i
 
