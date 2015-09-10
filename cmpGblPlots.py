@@ -3,10 +3,8 @@
 import sys, os, re
 import argparse
 from ROOT import TFile, TH1F, TF1, TCanvas, gDirectory, TGraph
-sys.path.append('pythonutils')
-import utils as gblUtils
-from plotutils import myText
-from plotutils import  setBinLabels
+#sys.path.append('pythonutils')
+import utils
 import compareRootHists 
 
 def getArgs():
@@ -35,14 +33,14 @@ def getSensor(name):
 def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None):
     print 'compareSensorHists for ', len(files), ' for histName ', histName, ' tag ', tag
     sensorHistNames = []
-    sensors = gblUtils.getSensorNames()
+    sensors = utils.getSensorNames()
     for s in sensors:
-        if gblUtils.getHalf(s) == 't' and half != 'top':
+        if utils.getHalf(s) == 't' and half != 'top':
             continue
-        if gblUtils.getHalf(s) == 'b' and half != 'bottom':
+        if utils.getHalf(s) == 'b' and half != 'bottom':
             continue
         addOn = ''
-        if gblUtils.getHalf(s) == 't':
+        if utils.getHalf(s) == 't':
             addOn = '_top'
         else:
             addOn = '_bot'
@@ -69,7 +67,7 @@ def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None):
             histos.append(h)
         print 'compare ', len(histos),' root histos'
         if c != None:
-            i = gblUtils.getCanvasIdxTwoCols(hName)
+            i = utils.getCanvasIdxTwoCols(hName)
             currentPad = c.cd(i)
         print currentPad
         compareRootHists.compareHists(histos,legends=None,normalize=None,fitName='gaus',t=tag,pad=currentPad)

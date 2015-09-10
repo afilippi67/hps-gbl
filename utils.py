@@ -712,6 +712,13 @@ def getSensorNames():
                     names.append(name)
     return names
 
+def getSensor(name):
+    m = re.match('.*_module_(.*)_sensor0.*',name)
+    if m!=None:
+        return m.group(1)
+    else:
+        print 'error get sensor from ', name
+
 def getLayer( deName):
     m = re.search("_L(\d)\S_", deName)
     if m!=None:            
