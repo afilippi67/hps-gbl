@@ -8,7 +8,7 @@ import plotutils
 
 def getArgs():
     parser = argparse.ArgumentParser(description='Run analysis')
-    parser.add_argument('--file','-f',nargs=1,help='Input files.')
+    parser.add_argument('--file','-f',nargs=1, required=True,help='Input files.')
     parser.add_argument('--tag','-t',default='',help='Tag to output files.')
     args = parser.parse_args();
     print args
@@ -139,7 +139,7 @@ def main(args):
 
     if len(args.file)==1:
 
-        f = TFile(args.file)
+        f = TFile(args.file[0])
         fitMom(f,'h_p')
         fitMom(f,'h_p_gbl')
         fitMom(f,'h_p_top')
