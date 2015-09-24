@@ -80,12 +80,12 @@ def main(args):
       # check if it is top or bottom
       if args.debug:
         print 'track with strip0 origin ', track.strips[0].origin
-      if args.half!=None:
-        if args.half=='b' and track.isTop():
+
+      if args.notop and track.isTop():
           if args.debug:
             print 'not ok'
           continue
-        if args.half=='t' and not track.isTop():
+      if args.nobottom and not track.isTop():
           if args.debug:
             print 'not ok'
           continue
@@ -507,6 +507,14 @@ def main(args):
           corr_meas = np.matrix( proL2m_list[strip.id] ) * np.transpose( np.matrix( corr ) )
           ures_gbl = strip.ures - corr_meas[0,0] # note minus sign due to definition of residual
           plot.fillSensorPlots("res_gbl", strip.deName, ures_gbl)
+          plot.fillSensorPlots("res_gbl_vs_vpred", strip.deName, [ures_gbl,tPosMeas[1]])
+          if abs(strip.meas) > 20.:
+            print 'really, this shouldnt happen? ', strip.meas
+            sys.exit(1)
+          #if abs(tPosMeas[1]) > 50.:
+          #  print 'really2? ', tPosMeas
+          #  #sys.exit(1)
+          plot.fillSensorPlots("res_gbl_vs_u", strip.deName, [ures_gbl, strip.meas] )
           plot.fillSensorPlots("iso", strip.deName, strip.iso)
 
           
@@ -548,7 +556,8 @@ def getArgs():
   parser.add_argument('file',help='Input file.')
   parser.add_argument('--debug','-d',action='store_true',help='Debug output flag.')
   parser.add_argument('--nevents','-n',type=int,default=-1,help='Max events to process.')
-  parser.add_argument('--half',help='Top or bot tracks: t or b')
+  parser.add_argument('--notop',action='store_true',help='Reject top tracks.')
+  parser.add_argument('--nobottom',action='store_true',help='Reject bottom tracks.')
   parser.add_argument('--name',help='Name to add to results')
   parser.add_argument('--mc','-m',action='store_true', help='Simulation input')
   parser.add_argument('--save','-s',action='store_true',help='Save output')
@@ -577,14 +586,13 @@ if __name__ == '__main__':
   if args.name:
     nametag = nametag + "-" + args.name
 
-  if args.half != None:
-    if args.half == 't':
+  if args.notop and args.nobottom:
+    print 'Cannot reject both top and bottom'
+    sys.exit(1)
+  elif args.nobottom:
       nametag = nametag + "-top"
-    elif args.half == 'b':
+  elif args.notop:
       nametag = nametag + "-bot"
-    else:
-      print 'half must be top or bottom: t/top or b/bot'
-      sys.exit(1)
   
 
   main(args)

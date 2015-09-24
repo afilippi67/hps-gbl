@@ -775,7 +775,7 @@ def getCanvasIdxThreeCols(sensor):
     half = getHalf(sensor)
     side = getHoleSlot(sensor)
     stereoname = getAxialStereo(sensor)
-    print sensor, " -> ", l, " / ", half, " / ", stereoname, " / ", side
+    #print sensor, " -> ", l, " / ", half, " / ", stereoname, " / ", side
 
     i = -1
     if l < 4:
@@ -873,7 +873,7 @@ def getCanvasIdxThreeCols(sensor):
                     else:
                         i = 36
         
-    print sensor, " -> ", i
+    #print sensor, " -> ", i
     return i
 
 
@@ -919,7 +919,7 @@ def getCanvasIdxTwoCols(sensor):
                 else:
                     i = (l-1)*4+4
     
-    print sensor, " -> layer ", l, " / ", half, " / ", stereoname, " / ", side, "   ==>  ", i
+    #print sensor, " -> layer ", l, " / ", half, " / ", stereoname, " / ", side, "   ==>  ", i
     return i
 
 
