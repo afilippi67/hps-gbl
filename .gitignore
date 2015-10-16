@@ -5,3 +5,6 @@
 *.root
 *.pyc
 *~
+results/
+tmp*
+

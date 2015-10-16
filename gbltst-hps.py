@@ -54,9 +54,9 @@ def main(args):
   bfac = 0.0002998 * Bz # for Bz in Tesla, momentum in GeV and Radius in mm
   print Bz, bfac
   
-  plots = plotter(nametag,'pdf',args.testrun,True,True)
-  plotsTop = plotter(nametag,'pdf',args.testrun,True,False)
-  plotsBot = plotter(nametag,'pdf',args.testrun,False,True)
+  plots = plotter(nametag,'pdf',args.testrun,True,True, args.beamspot)
+  plotsTop = plotter(nametag,'pdf',args.testrun,True,False, args.beamspot)
+  plotsBot = plotter(nametag,'pdf',args.testrun,False,True,args.beamspot)
   
   #print " GblHpsTest $Rev: 234 $ ", nTry, nLayer
   nTry = 0
@@ -566,7 +566,8 @@ def getArgs():
   parser.add_argument('--useuncorrms',action='store_true',help='inflate MS errors instead of using scatterers')
   parser.add_argument('--testrun',action='store_true',help='Test Run input')
   parser.add_argument('--minStrips',type=int,default=0,help='Minimum number of strip clusters per track')
-
+  parser.add_argument('--beamspot',action='store_true',help='Beamspot included as hit')
+  
   args = parser.parse_args();
   print args
   return args

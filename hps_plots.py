@@ -9,7 +9,7 @@ from utils import getLayer, getHalf, getAxialStereo,getHoleSlot,setGraphXLabels,
 
 
 class plotter:
-    def __init__(self,tag,picExt,testRunFlag,isTop=False,isBot=True):
+    def __init__(self,tag,picExt,testRunFlag,isTop=False,isBot=True,beamspot=False):
         self.picExt = picExt
         self.testRun = testRunFlag
         self.isTop = isTop
@@ -26,6 +26,13 @@ class plotter:
         self.doDetailed = False
         self.tag = tag
         self.makePlots()
+        self.beamspot = beamspot
+        if self.beamspot:
+            self.nSensorCols = 14
+            self.nSensorRows = 2
+        else:
+            self.nSensorCols = 12
+            self.nSensorRows = 2
     
     def getTag(self):
         str = ''
@@ -90,8 +97,8 @@ class plotter:
         else:
             self.h_d0_initial = TH1F('h_d0_initial'+self.halftag,';d_{0} [mm]',50,-3.0e0,3.0e0)
             self.h_z0_initial = TH1F('h_z0_initial'+self.halftag,';z_{0} [mm]',50,-2.0e0,2.0e0)
-            self.h_d0_gbl = TH1F('h_d0_gbl'+self.halftag,';d_{0} [mm]',50,-3.0e0,3.0e0)
-            self.h_z0_gbl = TH1F('h_z0_gbl'+self.halftag,';z_{0} [mm]',50,-2.0e0,2.0e0)
+            self.h_d0_gbl = TH1F('h_d0_gbl'+self.halftag,';d_{0} [mm]',50,-2.0e0,2.0e0)
+            self.h_z0_gbl = TH1F('h_z0_gbl'+self.halftag,';z_{0} [mm]',50,-1.3e0,1.3e0)
             self.h_clPar_initial_xT = TH1F('h_clPar_initial_xT'+self.halftag,';x_{T} (mm)',50,-4.,4.)
             self.h_clPar_initial_yT = TH1F('h_clPar_initial_yT'+self.halftag,';y_{T} (mm)',50,-2.,2.)
             self.h_clPar_initial_lambda = TH1F('h_clPar_initial_lambda'+self.halftag,';#lambda (rad)',50,-0.1,0.1)
@@ -150,6 +157,8 @@ class plotter:
                 l = getLayer(deName)
                 xmax = 0.01 + (l-1)*0.6
                 xmin = -1.*xmax
+                #if l==0: h = TH1F('h_res_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,,0.8)
+                #else:    h = TH1F('h_res_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 h = TH1F('h_res_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_layer[deName] = h
             h.Fill(val)
@@ -192,8 +201,14 @@ class plotter:
                 h = self.h_map_res_gbl_layer[deName]
             else:
                 l = getLayer(deName)
-                xmax = 0.01 
+                xmax = 0.05
+                if l==0:
+                    xmax = 0.3
+                if l==6:
+                    xmax = 0.01
                 xmin = -1.*xmax
+                #if l==0: h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,-0.5,0.5)
+                #else: h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_gbl_layer[deName] = h
             h.Fill(val)
@@ -213,7 +228,16 @@ class plotter:
             else:
                 l = getLayer(deName)
                 xmax = 0.006
+                if l==0:
+                    xmax = 0.002
+                if l==6:
+                    if getHalf(deName) == 'b' and getAxialStereo(deName)=='axial':
+                        xmax = 0.002
+                    elif getHalf(deName) == 't' and getAxialStereo(deName)=='stereo':
+                        xmax = 0.002                    
                 xmin = -1.*xmax
+                #if l==0: h = TH1F('h_corrdiff_lambda_%s%s'%(deName,self.halftag),'%s;#Delta#lambda correction in CL frame;Entries'%deName,50,-0.1,0.1)
+                #else: h = TH1F('h_corrdiff_lambda_%s%s'%(deName,self.halftag),'%s;#Delta#lambda correction in CL frame;Entries'%deName,50,xmin,xmax)
                 h = TH1F('h_corrdiff_lambda_%s%s'%(deName,self.halftag),'%s;#Delta#lambda correction in CL frame;Entries'%deName,50,xmin,xmax)
                 self.h_map_corrdiff_lambda_layer[deName] = h
             h.Fill(val)
@@ -233,7 +257,16 @@ class plotter:
             else:
                 l = getLayer(deName)
                 xmax = 0.006
+                if l==0:
+                    xmax = 0.002
+                if l==6:
+                    if getHalf(deName) == 'b' and getAxialStereo(deName)=='axial':
+                        xmax = 0.002
+                    elif getHalf(deName) == 't' and getAxialStereo(deName)=='stereo':
+                        xmax = 0.002                    
                 xmin = -1.*xmax
+                #if l==0: h = TH1F('h_corrdiff_phi_%s%s'%(deName,self.halftag),'%s;#Delta#phi correction in CL frame;Entries'%deName,50,-0.1,0.1)
+                #else: h = TH1F('h_corrdiff_phi_%s%s'%(deName,self.halftag),'%s;#Delta#phi correction in CL frame;Entries'%deName,50,xmin,xmax)
                 h = TH1F('h_corrdiff_phi_%s%s'%(deName,self.halftag),'%s;#Delta#phi correction in CL frame;Entries'%deName,50,xmin,xmax)
                 self.h_map_corrdiff_phi_layer[deName] = h
             h.Fill(val)
@@ -640,8 +673,8 @@ class plotter:
             if(save): c_res_example.SaveAs('res_example%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
-        c_res_initial_sensor = TCanvas('c_res_initial_sensor'+self.halftag,'c_res_initial_sensor'+self.halftag,10,10,690*2,390*2)
-        c_res_initial_sensor.Divide(6,3)
+        c_res_initial_sensor = TCanvas('c_res_initial_sensor'+self.halftag,'c_res_initial_sensor'+self.halftag,10,10,690,390*2)
+        c_res_initial_sensor.Divide(self.nSensorRows,self.nSensorCols)
         c_res_initial_sensor_mean = TCanvas('c_res_initial_sensor_mean'+self.halftag,'c_res_initial_sensor_mean'+self.halftag,10,10,690*2,390*2)
         c_res_initial_sensor_mean.SetBottomMargin(0.45)
         gr_res_initial_sensor_mean = TGraphErrors()
@@ -654,6 +687,7 @@ class plotter:
         ms = sorted(self.h_map_res_layer,key=getLayer)
         idToSensor = {}
         for sensor in ms:
+            i = getCanvasIdxTwoCols(sensor,self.beamspot)
             c_res_initial_sensor.cd(i)
             h = self.h_map_res_layer[sensor] 
             if h.GetEntries() > 10.:
@@ -671,21 +705,12 @@ class plotter:
         
         setGraphXLabels(gr_res_initial_sensor_mean,idToSensor)
         setGraphXLabels(gr_res_initial_sensor_rms,idToSensor)
-
-
-        c_res_initial_sensor2 = TCanvas('c_res_initial_sensor2'+self.halftag,'c_res_initial_sensor2'+self.halftag,10,10,690*2,390*2)
-        c_res_initial_sensor2.Divide(6,3)
-        i = 1
-        ms = sorted(self.h_map_res_layer,key=getLayer)
-        idToSensor = {}
-        for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
-            c_res_initial_sensor.cd(i)
-            h = self.h_map_res_layer[sensor] 
-            h.Draw()
-
-        c_res_gbl_sensor = TCanvas('c_res_gbl_sensor'+self.halftag,'c_res_gbl_sensor'+self.halftag,10,10,690*2,390*2)
-        c_res_gbl_sensor.Divide(6,3)
+        
+        
+        
+        
+        c_res_gbl_sensor = TCanvas('c_res_gbl_sensor'+self.halftag,'c_res_gbl_sensor'+self.halftag,10,10,690,390*2)
+        c_res_gbl_sensor.Divide(self.nSensorRows,self.nSensorCols)
         c_res_gbl_sensor_mean = TCanvas('c_res_gbl_sensor_mean'+self.halftag,'c_res_gbl_sensor_mean'+self.halftag,10,10,690*2,390*2)
         c_res_gbl_sensor_mean.SetBottomMargin(0.45)
         gr_res_gbl_sensor_mean = TGraphErrors()
@@ -698,6 +723,7 @@ class plotter:
         ms = sorted(self.h_map_res_gbl_layer,key=getLayer)
         idToSensor = {}
         for sensor in ms:
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_res_gbl_sensor.cd(i)
             h = self.h_map_res_gbl_layer[sensor] 
             if h.GetEntries() > 10.:
@@ -711,53 +737,44 @@ class plotter:
                 gr_res_gbl_sensor_rms.SetPoint(ii,ii,h.GetRMS())
                 gr_res_gbl_sensor_rms.SetPointError(ii,0.,h.GetRMSError())
                 idToSensor[ii] = sensor
-
+            
             i=i+1
-
+        
         setGraphXLabels(gr_res_gbl_sensor_mean,idToSensor)
         setGraphXLabels(gr_res_gbl_sensor_rms,idToSensor)
-
-
-
-        c_res_gbl_sensor2 = TCanvas('c_res_gbl_sensor2'+self.halftag,'c_res_gbl_sensor2'+self.halftag,10,10,690,390*2)
-        c_res_gbl_sensor2.Divide(2,12)
-        i = 1
-        ms = sorted(self.h_map_res_gbl_layer,key=getLayer)
-        for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
-            c_res_gbl_sensor2.cd(i)
-            h = self.h_map_res_gbl_layer[sensor] 
-            h.Draw()
-
-        c_res_gbl_vs_vpred_sensor = TCanvas('c_res_gbl_vs_vpred_sensor'+self.halftag,'c_res_gbl_vs_vpred_sensor'+self.halftag,10,10,690,int(390*1.3))
-        c_res_gbl_vs_vpred_sensor.Divide(2,12)
-        i = 1
+        
+        
+        
+        
+        c_res_gbl_vs_vpred_sensor = TCanvas('c_res_gbl_vs_vpred_sensor'+self.halftag,'c_res_gbl_vs_vpred_sensor'+self.halftag,10,10,690,int(390*2))
+        c_res_gbl_vs_vpred_sensor.Divide(self.nSensorRows,self.nSensorCols)
         ms = sorted(self.h_map_res_gbl_vs_vpred_layer,key=getLayer)
         for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_res_gbl_vs_vpred_sensor.cd(i)
             h = self.h_map_res_gbl_vs_vpred_layer[sensor] 
             h.Draw('colz')
-
-        c_res_gbl_vs_u_sensor = TCanvas('c_res_gbl_vs_u_sensor'+self.halftag,'c_res_gbl_vs_u_sensor'+self.halftag,10,10,690,int(390*1.3))
-        c_res_gbl_vs_u_sensor.Divide(2,12)
+        
+        c_res_gbl_vs_u_sensor = TCanvas('c_res_gbl_vs_u_sensor'+self.halftag,'c_res_gbl_vs_u_sensor'+self.halftag,10,10,690,int(390*2))
+        c_res_gbl_vs_u_sensor.Divide(self.nSensorRows,self.nSensorCols)                                     
         i = 1
         ms = sorted(self.h_map_res_gbl_vs_u_layer,key=getLayer)
         for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_res_gbl_vs_u_sensor.cd(i)
             h = self.h_map_res_gbl_vs_u_layer[sensor]
             h.Draw('colz')
-
-        c_res_gbl_vs_vpred_sensor_prf = TCanvas('c_res_gbl_vs_vpred_sensor_prf'+self.halftag,'c_res_gbl_vs_vpred_sensor_prf'+self.halftag,10,10,690,int(390*1.3))
-        c_res_gbl_vs_vpred_sensor_prf.Divide(2,12)
+        
+        c_res_gbl_vs_vpred_sensor_prf = TCanvas('c_res_gbl_vs_vpred_sensor_prf'+self.halftag,'c_res_gbl_vs_vpred_sensor_prf'+self.halftag,10,10,690,int(390*2))
+        c_res_gbl_vs_vpred_sensor_prf.Divide(self.nSensorRows,self.nSensorCols)
         i = 1
         ms = sorted(self.h_map_res_gbl_vs_vpred_layer,key=getLayer)
         for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_res_gbl_vs_vpred_sensor_prf.cd(i)
             h = self.h_map_res_gbl_vs_vpred_layer[sensor]
             profile = h.ProfileX();
+            fnc = None
             if h.GetEntries() > 50.0:
                 profile.Fit('pol1','0')
                 fnc = profile.GetFunction('pol1')
@@ -771,12 +788,12 @@ class plotter:
                 myText(0.7,0.1,"a1=%.2e a2=%.2e"% (fnc.GetParameter(0),fnc.GetParameter(1)),0.25,2)
         
 
-        c_res_gbl_vs_u_sensor_prf = TCanvas('c_res_gbl_vs_u_sensor_prf'+self.halftag,'c_res_gbl_vs_u_sensor_prf'+self.halftag,10,10,690,int(390*1.3))
-        c_res_gbl_vs_u_sensor_prf.Divide(2,12)
+        c_res_gbl_vs_u_sensor_prf = TCanvas('c_res_gbl_vs_u_sensor_prf'+self.halftag,'c_res_gbl_vs_u_sensor_prf'+self.halftag,10,10,690,int(390*2))
+        c_res_gbl_vs_u_sensor_prf.Divide(self.nSensorRows,self.nSensorCols)
         i = 1
         ms = sorted(self.h_map_res_gbl_vs_u_layer,key=getLayer)
         for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_res_gbl_vs_u_sensor_prf.cd(i)
             h = self.h_map_res_gbl_vs_u_layer[sensor]
             profile = h.ProfileX()
@@ -793,13 +810,13 @@ class plotter:
                 myText(0.7,0.1,"a1=%.2e a2=%.2e"% (fnc.GetParameter(0),fnc.GetParameter(1)),0.25,2)
 
 
-        c_corr_lambda_sensor = TCanvas('c_corr_lambda_sensor'+self.halftag,'c_corr_lambda_sensor'+self.halftag,10,10,690,int(390*1.3))
-        c_corr_lambda_sensor.Divide(2,12)
-        c_corr_lambda_sensor_mean = TCanvas('c_corr_lambda_sensor_mean'+self.halftag,'c_corr_lambda_sensor_mean'+self.halftag,10,10,690*2,int(390*1.3))
+        c_corr_lambda_sensor = TCanvas('c_corr_lambda_sensor'+self.halftag,'c_corr_lambda_sensor'+self.halftag,10,10,690,int(390*2))
+        c_corr_lambda_sensor.Divide(self.nSensorRows,self.nSensorCols)
+        c_corr_lambda_sensor_mean = TCanvas('c_corr_lambda_sensor_mean'+self.halftag,'c_corr_lambda_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
         c_corr_lambda_sensor_mean.SetBottomMargin(0.45)
         gr_corr_lambda_sensor_mean = TGraphErrors()
         gr_corr_lambda_sensor_mean.SetTitle(';Sensor;#lambda correction mean')        
-        c_corr_lambda_sensor_rms = TCanvas('c_corr_lambda_sensor_rms'+self.halftag,'c_corr_lambda_sensor_rms'+self.halftag,10,10,690*2,int(390*1.3))
+        c_corr_lambda_sensor_rms = TCanvas('c_corr_lambda_sensor_rms'+self.halftag,'c_corr_lambda_sensor_rms'+self.halftag,10,10,690*2,int(390*2))
         c_corr_lambda_sensor_rms.SetBottomMargin(0.45)
         gr_corr_lambda_sensor_rms = TGraphErrors()
         gr_corr_lambda_sensor_rms.SetTitle(';Sensor;#lambda correction width')        
@@ -807,7 +824,7 @@ class plotter:
         ms = sorted(self.h_map_corr_lambda_layer,key=getLayer)
         idToSensor = {}
         for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_corr_lambda_sensor.cd(i)
             h = self.h_map_corr_lambda_layer[sensor]
             if h.GetEntries() > 10.0:
@@ -837,13 +854,13 @@ class plotter:
         setGraphXLabels(gr_corr_lambda_sensor_rms,idToSensor)
 
 
-        c_corrdiff_lambda_sensor = TCanvas('c_corrdiff_lambda_sensor'+self.halftag,'c_corrdiff_lambda_sensor'+self.halftag,10,10,690,int(390*1.3))
-        c_corrdiff_lambda_sensor.Divide(2,12)
-        c_corrdiff_lambda_sensor_mean = TCanvas('c_corrdiff_lambda_sensor_mean'+self.halftag,'c_corrdiff_lambda_sensor_mean'+self.halftag,10,10,690*2,int(390*1.3))
+        c_corrdiff_lambda_sensor = TCanvas('c_corrdiff_lambda_sensor'+self.halftag,'c_corrdiff_lambda_sensor'+self.halftag,10,10,690,int(390*2))
+        c_corrdiff_lambda_sensor.Divide(self.nSensorRows,self.nSensorCols)
+        c_corrdiff_lambda_sensor_mean = TCanvas('c_corrdiff_lambda_sensor_mean'+self.halftag,'c_corrdiff_lambda_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
         c_corrdiff_lambda_sensor_mean.SetBottomMargin(0.45)
         gr_corrdiff_lambda_sensor_mean = TGraphErrors()
         gr_corrdiff_lambda_sensor_mean.SetTitle(';Sensor;#lambda correction mean')        
-        c_corrdiff_lambda_sensor_rms = TCanvas('c_corrdiff_lambda_sensor_rms'+self.halftag,'c_corrdiff_lambda_sensor_rms'+self.halftag,10,10,690*2,int(390*1.3))
+        c_corrdiff_lambda_sensor_rms = TCanvas('c_corrdiff_lambda_sensor_rms'+self.halftag,'c_corrdiff_lambda_sensor_rms'+self.halftag,10,10,690*2,int(390*2))
         c_corrdiff_lambda_sensor_rms.SetBottomMargin(0.45)
         gr_corrdiff_lambda_sensor_rms = TGraphErrors()
         gr_corrdiff_lambda_sensor_rms.SetTitle(';Sensor;#lambda correction width')        
@@ -851,7 +868,7 @@ class plotter:
         ms = sorted(self.h_map_corrdiff_lambda_layer,key=getLayer)
         idToSensor = {}
         for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_corrdiff_lambda_sensor.cd(i)
             h = self.h_map_corrdiff_lambda_layer[sensor]
             if h.GetEntries() > 10.0:
@@ -882,13 +899,13 @@ class plotter:
 
 
 
-        c_corr_phi_sensor = TCanvas('c_corr_phi_sensor'+self.halftag,'c_corr_phi_sensor'+self.halftag,10,10,690,int(390*1.3))
-        c_corr_phi_sensor.Divide(2,12)
-        c_corr_phi_sensor_mean = TCanvas('c_corr_phi_sensor_mean'+self.halftag,'c_corr_phi_sensor_mean'+self.halftag,10,10,690*2,int(390*1.3))
+        c_corr_phi_sensor = TCanvas('c_corr_phi_sensor'+self.halftag,'c_corr_phi_sensor'+self.halftag,10,10,690,int(390*2))
+        c_corr_phi_sensor.Divide(self.nSensorRows,self.nSensorCols)
+        c_corr_phi_sensor_mean = TCanvas('c_corr_phi_sensor_mean'+self.halftag,'c_corr_phi_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
         c_corr_phi_sensor_mean.SetBottomMargin(0.45)
         gr_corr_phi_sensor_mean = TGraphErrors()
         gr_corr_phi_sensor_mean.SetTitle(';Sensor;#phi correction mean')        
-        c_corr_phi_sensor_rms = TCanvas('c_corr_phi_sensor_rms'+self.halftag,'c_corr_phi_sensor_rms'+self.halftag,10,10,690*2,int(390*1.3))
+        c_corr_phi_sensor_rms = TCanvas('c_corr_phi_sensor_rms'+self.halftag,'c_corr_phi_sensor_rms'+self.halftag,10,10,690*2,int(390*2))
         c_corr_phi_sensor_rms.SetBottomMargin(0.45)
         gr_corr_phi_sensor_rms = TGraphErrors()
         gr_corr_phi_sensor_rms.SetTitle(';Sensor;#phi correction width')        
@@ -896,7 +913,7 @@ class plotter:
         ms = sorted(self.h_map_corr_phi_layer,key=getLayer)
         idToSensor = {}
         for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_corr_phi_sensor.cd(i)
             h = self.h_map_corr_phi_layer[sensor]
             if h.GetEntries() > 10.0:
@@ -926,13 +943,13 @@ class plotter:
         setGraphXLabels(gr_corr_phi_sensor_rms,idToSensor)
 
 
-        c_corrdiff_phi_sensor = TCanvas('c_corrdiff_phi_sensor'+self.halftag,'c_corrdiff_phi_sensor'+self.halftag,10,10,690,int(390*1.3))
-        c_corrdiff_phi_sensor.Divide(2,12)
-        c_corrdiff_phi_sensor_mean = TCanvas('c_corrdiff_phi_sensor_mean'+self.halftag,'c_corrdiff_phi_sensor_mean'+self.halftag,10,10,690*2,int(390*1.3))
+        c_corrdiff_phi_sensor = TCanvas('c_corrdiff_phi_sensor'+self.halftag,'c_corrdiff_phi_sensor'+self.halftag,10,10,690,int(390*2))
+        c_corrdiff_phi_sensor.Divide(self.nSensorRows,self.nSensorCols)
+        c_corrdiff_phi_sensor_mean = TCanvas('c_corrdiff_phi_sensor_mean'+self.halftag,'c_corrdiff_phi_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
         c_corrdiff_phi_sensor_mean.SetBottomMargin(0.45)
         gr_corrdiff_phi_sensor_mean = TGraphErrors()
         gr_corrdiff_phi_sensor_mean.SetTitle(';Sensor;#phi correction mean')        
-        c_corrdiff_phi_sensor_rms = TCanvas('c_corrdiff_phi_sensor_rms'+self.halftag,'c_corrdiff_phi_sensor_rms'+self.halftag,10,10,690*2,int(390*1.3))
+        c_corrdiff_phi_sensor_rms = TCanvas('c_corrdiff_phi_sensor_rms'+self.halftag,'c_corrdiff_phi_sensor_rms'+self.halftag,10,10,690*2,int(390*2))
         c_corrdiff_phi_sensor_rms.SetBottomMargin(0.45)
         gr_corrdiff_phi_sensor_rms = TGraphErrors()
         gr_corrdiff_phi_sensor_rms.SetTitle(';Sensor;#phi correction width')        
@@ -940,7 +957,7 @@ class plotter:
         ms = sorted(self.h_map_corrdiff_phi_layer,key=getLayer)
         idToSensor = {}
         for sensor in ms:
-            i = getCanvasIdxTwoCols(sensor)
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_corrdiff_phi_sensor.cd(i)
             h = self.h_map_corrdiff_phi_layer[sensor]
             if h.GetEntries() > 10.0:
@@ -970,9 +987,9 @@ class plotter:
 
 
 
-        c_res_truth_sensor = TCanvas('c_res_truth_sensor'+self.halftag,'c_res_truth_sensor'+self.halftag,10,10,690*2,int(390*1.3))
-        c_res_truth_sensor.Divide(6,3)
-        c_res_truth_sensor_mean = TCanvas('c_res_truth_sensor_mean'+self.halftag,'c_res_truth_sensor_mean'+self.halftag,10,10,690*2,int(390*1.3))
+        c_res_truth_sensor = TCanvas('c_res_truth_sensor'+self.halftag,'c_res_truth_sensor'+self.halftag,10,10,690*2,int(390*2))
+        c_res_truth_sensor.Divide(self.nSensorRows,self.nSensorCols)
+        c_res_truth_sensor_mean = TCanvas('c_res_truth_sensor_mean'+self.halftag,'c_res_truth_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
         gr_res_truth_sensor_mean = TGraphErrors()
         gr_res_truth_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
         i = 1
@@ -1034,39 +1051,36 @@ class plotter:
 
 
 
-        c_pred_sensor = TCanvas('c_pred_sensor'+self.halftag,'c_pred_sensor'+self.halftag,10,10,690*2,int(390*1.3))
-        c_pred_sensor.Divide(6,3)
-        i = 1
+        c_pred_sensor = TCanvas('c_pred_sensor'+self.halftag,'c_pred_sensor'+self.halftag,10,10,690,int(390*2))
+        c_pred_sensor.Divide(self.nSensorRows,self.nSensorCols)
         ms = sorted(self.h_map_pred_layer,key=getLayer)
         for sensor in ms:
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_pred_sensor.cd(i)
             h = self.h_map_pred_layer[sensor] 
             h.Draw("colz")
-            i=i+1
 
-        c_iso_sensor = TCanvas('c_iso_sensor'+self.halftag,'c_iso_sensor'+self.halftag,10,10,690*2,int(390*1.3))
-        c_iso_sensor.Divide(6,3)
-        i = 1
+        c_iso_sensor = TCanvas('c_iso_sensor'+self.halftag,'c_iso_sensor'+self.halftag,10,10,690,int(390*2))
+        print 'WHAT: ', self.nSensorRows, ' ', self.nSensorCols
+        c_iso_sensor.Divide(self.nSensorRows,self.nSensorCols)
         ms = sorted(self.h_map_iso_layer,key=getLayer)
         for sensor in ms:
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_iso_sensor.cd(i)
             h = self.h_map_iso_layer[sensor] 
             h.Draw("")
-            i=i+1
 
 
 
         if(save):
-            c_all = TCanvas('c_all'+self.halftag,'c_all'+self.halftag,10,10,690*2,int(390*1.3))
+            c_all = TCanvas('c_all'+self.halftag,'c_all'+self.halftag,10,10,690*2,int(390*2))
             c_all.Print('gbltst-hps-plots%s.ps['%self.getTag())
-            c_res_initial_sensor2.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor_rms.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_truth_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
-            c_res_gbl_sensor2.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_vs_vpred_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_vs_vpred_sensor_prf.Print('gbltst-hps-plots%s.ps'%self.getTag())
