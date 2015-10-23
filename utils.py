@@ -272,7 +272,7 @@ def readHPSEvents(infile,nEventsMax):
             nr = int(line.split('New Strip id layer')[1].split()[0])
             layer = int(line.split('New Strip id layer')[1].split()[1])
             deName = line.split('New Strip id layer')[1].split()[2]
-            print 'check ', deName
+            #print 'check ', deName
             if getLayer(deName) == 0 and getHalf(deName)=='b' and track.slope()>0:
                 print 'Fix deName for L0 for id ', nr, ' MP id ', layer, ' name ', deName
                 deName = deName.replace('L0b_','L0t_')
@@ -866,7 +866,7 @@ def getCanvasIdxTwoCols(sensor,includeL0=False):
                         i = (l)*4+4
         
     
-    print sensor, " -> layer ", l, " / ", half, " / ", stereoname, " / ", side, "   ==>  ", i
+    #print sensor, " -> layer ", l, " / ", half, " / ", stereoname, " / ", side, "   ==>  ", i
     return i
 
 
