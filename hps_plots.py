@@ -346,12 +346,12 @@ class plotter:
         self.h_p.SetFillStyle(1001);
         self.h_p.SetFillColor(4);
         self.h_p.SetLineColor(1);
-        self.h_p.Fit("gaus","R","",1.0,1.4)        
+        self.h_p.Fit("gaus","R","",0.9,1.2)        
         self.h_p_gbl.SetFillStyle(3005);
         self.h_p_gbl.SetFillColor(2);
         self.h_p_gbl.SetLineColor(2);
         self.h_p_gbl.Draw("")
-        self.h_p_gbl.Fit("gaus","R","",1.0,1.4)        
+        self.h_p_gbl.Fit("gaus","R","",0.9,1.2)        
         self.h_p.Draw("same")
         self.h_p_gbl.Draw("same")
         self.h_p_truth.SetLineStyle(3)
