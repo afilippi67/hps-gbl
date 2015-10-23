@@ -97,7 +97,11 @@ def main(args):
         if args.debug:
           print 'not enough strip clusters'
         continue
-      
+
+      if args.minP != None and track.p(bfac) < args.minP:
+          continue
+
+    
 
       # create the trajectory
       traj = GblTrajectory(True)
@@ -567,6 +571,7 @@ def getArgs():
   parser.add_argument('--testrun',action='store_true',help='Test Run input')
   parser.add_argument('--minStrips',type=int,default=0,help='Minimum number of strip clusters per track')
   parser.add_argument('--beamspot',action='store_true',help='Beamspot included as hit')
+  parser.add_argument('--minP',type=float,help='Minimum track momentum')
   
   args = parser.parse_args();
   print args
