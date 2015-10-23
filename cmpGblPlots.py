@@ -13,6 +13,7 @@ def getArgs():
     parser.add_argument('--file','-f',nargs='+', required=True,help='Input files.')
     parser.add_argument('--tag','-t',default='',help='Tag to output files.')
     parser.add_argument('--beamspot','-b',action='store_true',help='Beamspot is included.')
+    parser.add_argument('--legend','-l',help='Legend')
     args = parser.parse_args();
     print args
     return args
@@ -32,11 +33,13 @@ def getSensor(name):
         print 'error get sensor from ', name
 
 
-def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspot=False):
+def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspot=False,legends=None):
     print 'compareSensorHists for ', len(files), ' for histName ', histName, ' tag ', tag, ' beamspot ', beamspot
     sensorHistNames = []
     sensors = utils.getSensorNames(beamspot)
     for s in sensors:
+        #if utils.getHalf(s) != 't' or utils.getLayer(s) !=6 or utils.getHoleSlot(s) != 'slot' and utils.getAxialStereo(s) != 'slot':
+        #    continue
         #if beamspot and utils.getLayer(s)==0:
         #    if utils.getHalf(s) != 'b':
         #        print 'this beamspot sensor is weird! ', s
@@ -90,11 +93,11 @@ def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspo
             i = utils.getCanvasIdxTwoCols(hName,beamspot)
             currentPad = c.cd(i)
         print currentPad
-        compareRootHists.compareHists(histos,legends=None,normalize=True,fitName={'name':'gaus'},t=tag,pad=currentPad,myTextSize=0.1)
+        compareRootHists.compareHists(histos,legends=legends,normalize=True,fitName={'name':'gaus','rms':2},t=tag,pad=currentPad,myTextSize=0.1)
         print 'make graphs of mean and RMS'
         for ih in range(len(histos)):
             h = histos[ih]
-            f = h.GetFunction('gaus')
+            f = h.GetFunction('fg_' + h.GetName())
             if f != None:
                 mean = f.GetParameter(1)
                 meanError = f.GetParError(1)
@@ -161,6 +164,13 @@ def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspo
             grM.Draw('PL,same')
             cGr.cd(2)
             grR.Draw('PL,same')
+
+    if legends:
+        styles = [ 'PL' for x in range( len( graphMean ) ) ] 
+        l = plotutils.getLegendList(0.13,0.75,0.25,0.85,graphMean,legends,styles)
+        l.Draw()
+    
+
     cGr.SaveAs(cGr.GetName() + '.png')
 
     #ans = raw_input('press anything')
@@ -174,7 +184,7 @@ def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspo
 
 
 
-def compareHists(files,histName,tag='',fitFunctionName=None):
+def compareHists(files,histName,tag='',fitFunctionName=None, legends=None):
     print 'compareSensorHists for ', len(files), ' for histName ', histName, ' tag ', tag
     print 'open TFiles'
     tFiles = []
@@ -190,7 +200,7 @@ def compareHists(files,histName,tag='',fitFunctionName=None):
             
     print 'compare ', len(histos),' root histos'
 
-    compareRootHists.compareHists(histos,legends=None,normalize=True,fitName=fitFunctionName,t=tag,pad=None,myTextSize=0.05)
+    compareRootHists.compareHists(histos,legends=legends,normalize=True,fitName=fitFunctionName,t=tag,pad=None,myTextSize=0.05)
 
     for tf in tFiles:        
         print 'closing ', tf.GetName()
@@ -215,22 +225,25 @@ def compareTwoHists(file1,histName1,file2,histName2,tag='',fitFunctionName=None,
 
     
 
-def compareGblHists(files,tag,beamspot=False):
+def compareGblHists(files,tag,beamspot=False,legends=None):
 
     print 'compareGblHists for ', len(files), ' files'
-    compareSensorHists(files,'h_res_gbl_',tag,'top',None,beamspot)
-    compareSensorHists(files,'h_res_gbl_',tag,'bottom',None,beamspot)
-    compareSensorHists(files,'h_corrdiff_lambda_',tag,'top',None,beamspot)
-    compareSensorHists(files,'h_corrdiff_lambda_',tag,'bottom',None,beamspot)
-    compareSensorHists(files,'h_corrdiff_phi_',tag,'top',None,beamspot)
-    compareSensorHists(files,'h_corrdiff_phi_',tag,'bottom',None,beamspot)
 
-    compareSensorHists(files,'h_res_gbl_',tag,'top',TCanvas(),beamspot)
-    compareSensorHists(files,'h_res_gbl_',tag,'bottom',TCanvas(),beamspot)
-    compareSensorHists(files,'h_corrdiff_lambda_',tag,'top',TCanvas(),beamspot)
-    compareSensorHists(files,'h_corrdiff_lambda_',tag,'bottom',TCanvas(),beamspot)
-    compareSensorHists(files,'h_corrdiff_phi_',tag,'top',TCanvas(),beamspot)
-    compareSensorHists(files,'h_corrdiff_phi_',tag,'bottom',TCanvas(),beamspot)
+
+    compareSensorHists(files,'h_res_gbl_',tag,'top',None,beamspot,legends=legends)
+    compareSensorHists(files,'h_res_gbl_',tag,'bottom',None,beamspot,legends=legends)
+    compareSensorHists(files,'h_corrdiff_lambda_',tag,'top',None,beamspot,legends=legends)
+    compareSensorHists(files,'h_corrdiff_lambda_',tag,'bottom',None,beamspot,legends=legends)
+    compareSensorHists(files,'h_corrdiff_phi_',tag,'top',None,beamspot,legends=legends)
+    compareSensorHists(files,'h_corrdiff_phi_',tag,'bottom',None,beamspot,legends=legends)
+
+    compareSensorHists(files,'h_res_gbl_',tag,'top',TCanvas(),beamspot,legends=legends)
+    compareSensorHists(files,'h_res_gbl_',tag,'bottom',TCanvas(),beamspot,legends=legends)
+    compareSensorHists(files,'h_corrdiff_lambda_',tag,'top',TCanvas(),beamspot,legends=legends)
+    compareSensorHists(files,'h_corrdiff_lambda_',tag,'bottom',TCanvas(),beamspot,legends=legends)
+    compareSensorHists(files,'h_corrdiff_phi_',tag,'top',TCanvas(),beamspot,legends=legends)
+    compareSensorHists(files,'h_corrdiff_phi_',tag,'bottom',TCanvas(),beamspot,legends=legends)
+
 
 
 
@@ -238,44 +251,46 @@ def compareGblHists(files,tag,beamspot=False):
 def main(args):
 
     if len(args.file)>1:
+        l = None
+        if args.legend != None: l = args.legend.split()
 
-        compareGblHists(args.file,args.tag,args.beamspot)
-    
-        compareHists(args.file,'h_d0_initial_top',args.tag,{'name':'gaus'})
-        compareHists(args.file,'h_d0_initial_bot',args.tag,{'name':'gaus'})
-        compareHists(args.file,'h_d0_gbl_top',args.tag,{'name':'gaus'})
-        compareHists(args.file,'h_d0_gbl_bot',args.tag,{'name':'gaus'})
+        compareGblHists(args.file,args.tag,args.beamspot,l)
+
+        compareHists(args.file,'h_d0_initial_top',args.tag,{'name':'gaus','peakbin':1,'rms':2},l)
+        compareHists(args.file,'h_d0_initial_bot',args.tag,{'name':'gaus','peakbin':1,'rms':2},l)
+        compareHists(args.file,'h_d0_gbl_top',args.tag,{'name':'gaus','peakbin':1,'rms':2},l)
+        compareHists(args.file,'h_d0_gbl_bot',args.tag,{'name':'gaus','peakbin':1,'rms':2},l)
 
 
-        compareHists(args.file,'h_z0_initial_top',args.tag,{'name':'gaus'})
-        compareHists(args.file,'h_z0_initial_bot',args.tag,{'name':'gaus'})
-        compareHists(args.file,'h_z0_gbl_top',args.tag,{'name':'gaus'})
-        compareHists(args.file,'h_z0_gbl_bot',args.tag,{'name':'gaus'})
+        compareHists(args.file,'h_z0_initial_top',args.tag,{'name':'gaus','peakbin':1,'rms':2},l)
+        compareHists(args.file,'h_z0_initial_bot',args.tag,{'name':'gaus','peakbin':1,'rms':2},l)
+        compareHists(args.file,'h_z0_gbl_top',args.tag,{'name':'gaus','peakbin':1,'rms':2},l)
+        compareHists(args.file,'h_z0_gbl_bot',args.tag,{'name':'gaus','peakbin':1,'rms':2},l)
 
-        compareHists(args.file,'h_p_top',args.tag,{'name':'gaus','xmin':0.95,'xmax':1.14})
-        compareHists(args.file,'h_p_bot',args.tag,{'name':'gaus','xmin':0.95,'xmax':1.14})
-        compareHists(args.file,'h_p_gbl_top',args.tag,{'name':'gaus','xmin':0.95,'xmax':1.14})
-        compareHists(args.file,'h_p_gbl_bot',args.tag,{'name':'gaus','xmin':0.95,'xmax':1.14})
+        compareHists(args.file,'h_p_top',args.tag,{'name':'gaus','peakbin':1,'xmin':0.95,'xmax':1.14},l)
+        compareHists(args.file,'h_p_bot',args.tag,{'name':'gaus','peakbin':1,'xmin':0.95,'xmax':1.14},l)
+        compareHists(args.file,'h_p_gbl_top',args.tag,{'name':'gaus','peakbin':1,'xmin':0.95,'xmax':1.14},l)
+        compareHists(args.file,'h_p_gbl_bot',args.tag,{'name':'gaus','peakbin':1,'xmin':0.95,'xmax':1.14},l)
 
-        compareHists(args.file,'h_chi2_initial_top',args.tag,None)
-        compareHists(args.file,'h_chi2_initial_bot',args.tag,None)
-        compareHists(args.file,'h_chi2_top',args.tag,None)
-        compareHists(args.file,'h_chi2_bot',args.tag,None)
+        compareHists(args.file,'h_chi2_initial_top',args.tag,None,l)
+        compareHists(args.file,'h_chi2_initial_bot',args.tag,None,l)
+        compareHists(args.file,'h_chi2_top',args.tag,None,l)
+        compareHists(args.file,'h_chi2_bot',args.tag,None,l)
 
-        compareHists(args.file,'h_chi2prob_initial_top',args.tag,None)
-        compareHists(args.file,'h_chi2prob_initial_bot',args.tag,None)
-        compareHists(args.file,'h_chi2prob_top',args.tag,None)
-        compareHists(args.file,'h_chi2prob_bot',args.tag,None)
+        compareHists(args.file,'h_chi2prob_initial_top',args.tag,None,l)
+        compareHists(args.file,'h_chi2prob_initial_bot',args.tag,None,l)
+        compareHists(args.file,'h_chi2prob_top',args.tag,None,l)
+        compareHists(args.file,'h_chi2prob_bot',args.tag,None,l)
 
 
         ifile = 0
         for f in args.file:
-            compareTwoHists(f,'h_d0_initial_top', f,'h_d0_initial_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus'},['top','bot'])
-            compareTwoHists(f,'h_z0_initial_top', f,'h_z0_initial_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus'},['top','bot'])
-            compareTwoHists(f,'h_d0_gbl_top', f,'h_d0_gbl_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus'},['top','bot'])
-            compareTwoHists(f,'h_z0_gbl_top', f,'h_z0_gbl_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus'},['top','bot'])
-            compareTwoHists(f,'h_p_top', f,'h_p_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus','xmin':0.95,'xmax':1.14},['top','bot'])
-            compareTwoHists(f,'h_p_gbl_top', f,'h_p_gbl_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus','xmin':0.95,'xmax':1.14},['top','bot'])
+            compareTwoHists(f,'h_d0_initial_top', f,'h_d0_initial_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus','rms':2},['top','bot'])
+            compareTwoHists(f,'h_z0_initial_top', f,'h_z0_initial_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus','rms':2},['top','bot'])
+            compareTwoHists(f,'h_d0_gbl_top', f,'h_d0_gbl_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus','rms':2},['top','bot'])
+            compareTwoHists(f,'h_z0_gbl_top', f,'h_z0_gbl_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus','rms':2},['top','bot'])
+            compareTwoHists(f,'h_p_top', f,'h_p_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus','peakbin':1,'xmin':0.95,'xmax':1.14},['top','bot'])
+            compareTwoHists(f,'h_p_gbl_top', f,'h_p_gbl_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),{'name':'gaus','peakbin':1,'xmin':0.95,'xmax':1.14},['top','bot'])
             compareTwoHists(f,'h_chi2prob_initial_top', f,'h_chi2prob_initial_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),None,['top','bot'])
             compareTwoHists(f,'h_chi2_initial_top', f,'h_chi2_initial_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),None,['top','bot'])
             compareTwoHists(f,'h_chi2_top', f,'h_chi2_bot',args.tag + '-top_vs_bottom-file-' + str(ifile),None,['top','bot'])
