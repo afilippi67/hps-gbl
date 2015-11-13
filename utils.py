@@ -56,7 +56,10 @@ class Track:
             return True
         return False
     def pt(self,bfac):
-        #print 'pt: bfac ', bfac, ' C ', self.curvature(), ' -> ', (bfac * 1.0/self.curvature()), ' abs(pt) ', TMath.Abs(bfac * 1.0/self.curvature()), ' ', abs(bfac * 1.0/self.curvature())
+        if self.curvature() == 0.:
+            print 'curvature is zero? ', self.curvature(), ' ', self.perPar
+            sys.exit(1)
+            #print 'pt: bfac ', bfac, ' C ', self.curvature(), ' -> ', (bfac * 1.0/self.curvature()), ' abs(pt) ', TMath.Abs(bfac * 1.0/self.curvature()), ' ', abs(bfac * 1.0/self.curvature())
         return abs(bfac * 1.0/self.curvature())
     def p(self,bfac):
         p1 = self.pt(bfac) / sin(self.theta())
@@ -69,6 +72,9 @@ class Track:
             #exit(1)
         return p1
     def pt_truth(self,bfac):
+        if self.curvature_truth() == 0.:
+            print 'curvature_truth is zero? ', self.curvature_truth(), ' ', self.perParTruth
+            sys.exit(1)
         return abs(bfac * 1.0/self.curvature_truth())
     def p_truth(self,bfac):
         p1 = self.pt_truth(bfac) / sin(self.theta_truth())

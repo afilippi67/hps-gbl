@@ -63,9 +63,9 @@ class plotter:
         self.h_p_gbl = TH1F('h_p_gbl'+self.halftag,';Track momentum;Entries',50,0.,1.5)
         self.h_p_truth = TH1F('h_p_truth'+self.halftag,';Track momentum;Entries',50,0.,1.5)
         self.h_p_truth_res = TH1F('h_p_truth_res'+self.halftag,';Track - Truth momentum;Entries',50,-0.3,0.3)
-        self.h_p_truth_res_vs_p = TH2F('h_p_truth_res_vs_p'+self.halftag,';Truth momentum;Track - Truth momentum',6,0.4,1.6,50,-0.3,0.3)
+        self.h_p_truth_res_vs_p = TH2F('h_p_truth_res_vs_p'+self.halftag,';Truth momentum;Track - Truth momentum',8,0.3,1.2,50,-0.3,0.3)
         self.h_p_truth_res_gbl = TH1F('h_p_truth_res_gbl'+self.halftag,';Track - Truth momentum;Entries',50,-0.3,0.3)
-        self.h_p_truth_res_gbl_vs_p = TH2F('h_p_truth_res_gbl_vs_p'+self.halftag,';Truth momentum;Track - Truth momentum',6,0.4,1.6,50,-0.3,0.3)
+        self.h_p_truth_res_gbl_vs_p = TH2F('h_p_truth_res_gbl_vs_p'+self.halftag,';Truth momentum;Track - Truth momentum',8,0.3,1.2,50,-0.3,0.3)
         self.h_qOverP_truth_res_gbl = TH1F('h_qOverP_truth_res_gbl'+self.halftag,';q/p - Truth q/p;Entries',50,-0.3,0.3)
         self.h_qOverP_truth_res = TH1F('h_qOverP_truth_res'+self.halftag,';q/p - Truth q/p;Entries',50,-0.3,0.3)
         self.h_qOverP_corr = TH1F('h_qOverP_corr'+self.halftag,';q/p correction;Entries',50,-6.0e-1,6.0e-1)
@@ -406,8 +406,11 @@ class plotter:
         self.h_p_truth_res_vs_p.Draw('colz')
         c_track_momentum_res_vs_p.cd(2)
         self.h_p_truth_res_gbl_vs_p.Draw('colz')    
+
         c_track_momentum_res_vs_p.cd(3)
         gr_vs_p = TGraphErrors()
+        maxValY = -9999.9
+        minValY = 999999.9        
         for b in range(1,self.h_p_truth_res_vs_p.GetNbinsX()+1):
             hprj = self.h_p_truth_res_vs_p.ProjectionY('%s_%d'%(self.h_p_truth_res_vs_p.GetName(),b),b,b,"")
             if hprj.Integral() > 20: 
@@ -420,6 +423,8 @@ class plotter:
                 if (dy/y) < 1.0:
                     gr_vs_p.SetPoint(b-1,x,y)
                     gr_vs_p.SetPointError(b-1,0.,dy)
+                    if y > maxValY: maxValY = y
+                    if y < minValY: minValY = y
         gr_gbl_vs_p = TGraphErrors()
         for b in range(1,self.h_p_truth_res_gbl_vs_p.GetNbinsX()+1):
             hprj = self.h_p_truth_res_gbl_vs_p.ProjectionY('%s_%d'%(self.h_p_truth_res_gbl_vs_p.GetName(),b),b,b,"")
@@ -433,7 +438,14 @@ class plotter:
                 if (dy/y) < 1.0:
                     gr_gbl_vs_p.SetPoint(b-1,x,y)
                     gr_gbl_vs_p.SetPointError(b-1,0.,dy)
-        gr_vs_p.Draw('ALP')
+                    if y > maxValY: maxValY = y
+                    if y < minValY: minValY = y
+        # template for momentum dependent plots
+        h_gr_vs_p = TH2F('h_gr_vs_p','Truth momentum (GeV);#sigma(p)/p',10,0.2,1.2,10,minValY*0.8,maxValY*1.2)
+        h_gr_vs_p.SetStats(False)
+        h_gr_vs_p.Draw()
+        # draw the graph
+        gr_vs_p.Draw('LP,same')
         gr_vs_p.SetMarkerStyle(20)
         gr_vs_p.SetTitle(';Truth momentum (GeV);#sigma(p)/p')
         gr_gbl_vs_p.SetTitle(';Truth momentum (GeV);#sigma(p)/p')
@@ -441,9 +453,9 @@ class plotter:
         gr_gbl_vs_p.SetMarkerColor(2)
         gr_gbl_vs_p.SetLineColor(2)
         gr_gbl_vs_p.Draw('LP,same')
-        leg_vs_p = TLegend(0.22,0.4,0.6,0.85)
+        leg_vs_p = TLegend(0.7,0.85,0.95,0.97)
         leg_vs_p.SetFillColor(0)
-        leg_vs_p.SetBorderSize(0)
+        #leg_vs_p.SetBorderSize(0)
         leg_vs_p.AddEntry(gr_vs_p,'Initial fit', 'LP')
         leg_vs_p.AddEntry(gr_gbl_vs_p,'GBL refit', 'LP')
         leg_vs_p.Draw()
@@ -459,6 +471,10 @@ class plotter:
             y2 = ROOTDouble(0.)
             gr_gbl_vs_p.GetPoint(b,x2,y2)
             dy2 = gr_gbl_vs_p.GetErrorY(b)
+            if y1==0. or y2 ==0.:
+                print 'skip point with p ', x1, ' since res were zero'
+                continue
+            print y1,' ', y2, ' ', dy1, ' ', dy2, ' for ', b, ' ', x1, ' ', x2
             r = y2/y1
             dr = (dy2/y1)*(dy2/y1) + (y2*dy1/(y1*y1))*(y2*dy1/(y1*y1))
             dr = sqrt(dr)

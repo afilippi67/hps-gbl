@@ -73,8 +73,9 @@ def main(args):
         print '\nProcessed %d events: now on event id %d and track id %d' % (nTry, event.id, track.id)
 
       # if there's no truth info -> skip the track
-      if args.mc and track.p_truth(bfac) == 0.:
-        print 'No truth info, skip track %d in event %d ' % (track.id, event.id)
+      # use the track parameters and check curvature
+      if args.mc and track.curvature_truth() == 0.:
+        print 'Track curvature is zero for this MC track, skip track ', track.id, ' in event ', event.id, ' (perigee pars truth: ', track.perParTruth,')'
         continue
 
       # check if it is top or bottom

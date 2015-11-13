@@ -38,6 +38,8 @@ def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspo
     sensorHistNames = []
     sensors = utils.getSensorNames(beamspot)
     for s in sensors:
+        #if utils.getHalf(s) != 'b' or utils.getLayer(s) !=2 or utils.getAxialStereo(s) != 'axial':
+        #    continue
         #if utils.getHalf(s) != 't' or utils.getLayer(s) !=6 or utils.getHoleSlot(s) != 'slot' and utils.getAxialStereo(s) != 'slot':
         #    continue
         #if beamspot and utils.getLayer(s)==0:
@@ -109,7 +111,9 @@ def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspo
                 graphMean[ih].SetPointError(ipoint, 0., meanError)
                 graphRMS[ih].SetPointError(ipoint, 0., rmsError)
                 graphBinNames[ ipoint ] = utils.getShortSensorName( hName )
-                #print 'mean ', mean, ' RMS ', rms
+                print 'mean ', mean, ' RMS ', rms, ' fg ', f.GetName()
+            else:
+                print 'No fg in histo ', ih, ' name ', h.GetName()
         
         print 'done comparing ', len(histos),' root histos'
     if c != None:
@@ -185,7 +189,7 @@ def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspo
 
 
 def compareHists(files,histName,tag='',fitFunctionName=None, legends=None):
-    print 'compareSensorHists for ', len(files), ' for histName ', histName, ' tag ', tag
+    print 'compareHists for ', len(files), ' for histName ', histName, ' tag ', tag
     print 'open TFiles'
     tFiles = []
     for f in files:
@@ -229,6 +233,7 @@ def compareGblHists(files,tag,beamspot=False,legends=None):
 
     print 'compareGblHists for ', len(files), ' files'
 
+    compareSensorHists(files,'h_res_gbl_',tag,'bottom',None,beamspot,legends=legends)
 
     compareSensorHists(files,'h_res_gbl_',tag,'top',None,beamspot,legends=legends)
     compareSensorHists(files,'h_res_gbl_',tag,'bottom',None,beamspot,legends=legends)
