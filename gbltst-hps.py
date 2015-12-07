@@ -4,6 +4,7 @@ import time
 import sys
 import os
 import utils
+import hpsevent
 import argparse
 gblpythonpath = os.getenv('GBL','../GeneralBrokenLines/python')
 sys.path.append(gblpythonpath)
@@ -44,7 +45,7 @@ def main(args):
     binaryFile = open("%s.dat" % binaryFileName, "wb")
 
   inputFile = open(args.file, 'r')
-  events = utils.readHPSEvents(inputFile, args.nevents)
+  events = hpsevent.readHPSEvents(inputFile, args.nevents)
   
   print 'Read %d events from file' % len(events)
 
@@ -338,7 +339,7 @@ def main(args):
       
 
       # get corrections and covariance matrix at points; collect the result in one object
-      result = utils.GBLResults(track)
+      result = hpsevent.GBLResults(track)
 
       #traj.dump()
       
@@ -585,6 +586,7 @@ if __name__ == '__main__':
 
 
   if args.debug:
+      hpsevent.debug = True
       utils.debug = True
 
 

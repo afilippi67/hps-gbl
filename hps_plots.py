@@ -3,9 +3,8 @@ from ROOT import TH1F, TH2F, TGraph, TGraphErrors, TCanvas, TLegend, TLatex, gSt
 from ROOT import Double as ROOTDouble
 from math import sqrt
 sys.path.append('pythonutils')
-from plotutils import myText
-from utils import getLayer, getHalf, getAxialStereo,getHoleSlot,setGraphXLabels,getCanvasIdxTwoCols
-
+import plotutils
+from hps_utils import getLayer, getHalf, getAxialStereo,getHoleSlot,getCanvasIdxTwoCols
 
 
 class plotter:
@@ -127,6 +126,8 @@ class plotter:
         self.h_clParGBL_pull_phi = TH1F('h_clParGBL_pull_phi'+self.halftag,';#phi-#phi_{truth}',50,-5.0,5.0)
         self.h_map_res_layer = {}
         self.h_map_res_gbl_layer = {}
+        self.h_map_xTcorr_layer = {}
+        self.h_map_yTcorr_layer = {}
         self.h_map_res_gbl_vs_vpred_layer = {}
         self.h_map_res_gbl_vs_u_layer = {}
         self.h_map_corr_lambda_layer = {}
@@ -171,7 +172,7 @@ class plotter:
                 xmin = 55.0
                 ymax = 0.01 + (l-1)*0.6
                 ymin = -1.*xmax
-                h = TH2F('h_res_gbl_vs_vpred_%s%s'%(deName,self.halftag),'%s;Pred v (mm);Residual in measurement direction (mm)'%deName,20,xmin,xmax,40,ymin,ymax)
+                h = TH2F('h_res_gbl_vs_vpred_%s%s'%(deName,self.halftag),'%s;Pred v (mm);GBL residual in measurement direction (mm)'%deName,20,xmin,xmax,40,ymin,ymax)
                 self.h_map_res_gbl_vs_vpred_layer[deName] = h
             h.Fill(val[1],val[0])
         elif type=="res_gbl_vs_u":
@@ -183,7 +184,7 @@ class plotter:
                 xmin = 20.0
                 ymax = 0.01 + (l-1)*0.6
                 ymin = -1.*xmax
-                h = TH2F('h_res_gbl_vs_u_%s%s'%(deName,self.halftag),'%s;Meas u (mm);Residual in measurement direction (mm)'%deName,20,xmin,xmax,40,ymin,ymax)
+                h = TH2F('h_res_gbl_vs_u_%s%s'%(deName,self.halftag),'%s;Meas u (mm);GBL residual in measurement direction (mm)'%deName,20,xmin,xmax,40,ymin,ymax)
                 self.h_map_res_gbl_vs_u_layer[deName] = h
             h.Fill(val[1],val[0])
         elif type=="res_truth":
@@ -193,7 +194,7 @@ class plotter:
                 l = getLayer(deName)
                 xmax = 0.01 + (l-1)*0.6
                 xmin = -1.*xmax
-                h = TH1F('h_res_truth_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                h = TH1F('h_res_truth_%s%s'%(deName,self.halftag),'%s;Truth residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_truth_layer[deName] = h
             h.Fill(val)
         elif type=="res_gbl":
@@ -207,10 +208,28 @@ class plotter:
                 if l==6:
                     xmax = 0.01
                 xmin = -1.*xmax
-                #if l==0: h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,-0.5,0.5)
-                #else: h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
-                h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
+                h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;GBL residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_gbl_layer[deName] = h
+            h.Fill(val)
+        elif type=="xTcorr":
+            if deName in self.h_map_xTcorr_layer:
+                h = self.h_map_xTcorr_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 0.5
+                xmin = -1.*xmax
+                h = TH1F('h_xTcorr_%s%s'%(deName,self.halftag),'%s;GBL x_{T} corr (mm);Entries'%deName,50,xmin,xmax)
+                self.h_map_xTcorr_layer[deName] = h
+            h.Fill(val)
+        elif type=="yTcorr":
+            if deName in self.h_map_yTcorr_layer:
+                h = self.h_map_yTcorr_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 0.5
+                xmin = -1.*xmax
+                h = TH1F('h_yTcorr_%s%s'%(deName,self.halftag),'%s;GBL y_{T} corr (mm);Entries'%deName,50,xmin,xmax)
+                self.h_map_yTcorr_layer[deName] = h
             h.Fill(val)
         elif type=="corr_lambda":
             if deName in self.h_map_corr_lambda_layer:
@@ -359,9 +378,9 @@ class plotter:
         self.h_p_truth.Draw("same")
         f_gbl = self.h_p_gbl.GetFunction("gaus")
         if f_gbl != None:
-            myText(0.7,0.63,"%.2f#sigma%.2f"% (f_gbl.GetParameter(1),f_gbl.GetParameter(2)),0.05,2)
+            plotutils.myText(0.7,0.63,"%.2f#sigma%.2f"% (f_gbl.GetParameter(1),f_gbl.GetParameter(2)),0.05,2)
         if self.h_p.GetFunction("gaus") != None:
-            myText(0.7,0.55,"%.2f#sigma%.2f"% (self.h_p.GetFunction("gaus").GetParameter(1),self.h_p.GetFunction("gaus").GetParameter(2)),0.05,4)        
+            plotutils.myText(0.7,0.55,"%.2f#sigma%.2f"% (self.h_p.GetFunction("gaus").GetParameter(1),self.h_p.GetFunction("gaus").GetParameter(2)),0.05,4)        
         c_track_momentum.cd(2)
         self.h_qOverP.SetFillStyle(1001);
         self.h_qOverP.SetFillColor(4);
@@ -382,22 +401,22 @@ class plotter:
         self.h_p_truth_res.Fit('gaus','Q')
         self.h_p_truth_res.Draw()
         if self.h_p_truth_res.GetFunction('gaus')!=None:
-            myText(0.6,0.7,'#sigma=%.3fGeV'%self.h_p_truth_res.GetFunction('gaus').GetParameter(2),0.05,1)
+            plotutils.myText(0.6,0.7,'#sigma=%.3fGeV'%self.h_p_truth_res.GetFunction('gaus').GetParameter(2),0.05,1)
         c_track_momentum_res.cd(2)
         self.h_p_truth_res_gbl.Fit('gaus','Q')
         self.h_p_truth_res_gbl.Draw()
         if self.h_p_truth_res_gbl.GetFunction('gaus') != None:
-            myText(0.6,0.7,'#sigma=%.3fGeV'%self.h_p_truth_res_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
+            plotutils.myText(0.6,0.7,'#sigma=%.3fGeV'%self.h_p_truth_res_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
         c_track_momentum_res.cd(3)
         self.h_qOverP_truth_res.Fit('gaus','Q')
         self.h_qOverP_truth_res.Draw()
         if self.h_qOverP_truth_res.GetFunction('gaus') != None:
-            myText(0.6,0.7,'#sigma=%.3f'%self.h_qOverP_truth_res.GetFunction('gaus').GetParameter(2),0.05,1)
+            plotutils.myText(0.6,0.7,'#sigma=%.3f'%self.h_qOverP_truth_res.GetFunction('gaus').GetParameter(2),0.05,1)
         c_track_momentum_res.cd(4)
         self.h_qOverP_truth_res_gbl.Fit('gaus','Q')
         self.h_qOverP_truth_res_gbl.Draw()
         if self.h_qOverP_truth_res_gbl.GetFunction('gaus') != None:
-            myText(0.6,0.7,'#sigma=%.3f'%self.h_qOverP_truth_res_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
+            plotutils.myText(0.6,0.7,'#sigma=%.3f'%self.h_qOverP_truth_res_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
         
         
         c_track_momentum_res_vs_p = TCanvas('c_track_momentum_res_vs_p'+self.halftag,'c_track_momentum_res_vs_p'+self.halftag,10,10,690,490)
@@ -441,7 +460,7 @@ class plotter:
                     if y > maxValY: maxValY = y
                     if y < minValY: minValY = y
         # template for momentum dependent plots
-        h_gr_vs_p = TH2F('h_gr_vs_p','Truth momentum (GeV);#sigma(p)/p',10,0.2,1.2,10,minValY*0.8,maxValY*1.2)
+        h_gr_vs_p = TH2F('h_gr_vs_p',';Truth momentum (GeV);#sigma(p)/p',10,0.2,1.2,10,minValY*0.8,maxValY*1.2)
         h_gr_vs_p.SetStats(False)
         h_gr_vs_p.Draw()
         # draw the graph
@@ -506,34 +525,34 @@ class plotter:
         self.h_d0_initial.Fit('gaus','Q')
         self.h_d0_initial.Draw()
         if self.h_d0_initial.GetFunction('gaus') != None:
-            myText(0.6,0.76,'mean=%.3f'%self.h_d0_initial.GetFunction('gaus').GetParameter(1),0.05,1)
-            myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
+            plotutils.myText(0.6,0.76,'mean=%.3f'%self.h_d0_initial.GetFunction('gaus').GetParameter(1),0.05,1)
+            plotutils.myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
         else:
-            myText(0.6,0.7,'#sigma=?',0.05,1)            
+            plotutils.myText(0.6,0.7,'#sigma=?',0.05,1)            
         c_impactParameters_corr.cd(2)
         self.h_z0_initial.Fit('gaus','Q')
         self.h_z0_initial.Draw()
         if self.h_z0_initial.GetFunction('gaus') != None:
-            myText(0.6,0.76,'mean=%.3f'%self.h_z0_initial.GetFunction('gaus').GetParameter(1),0.05,1)
-            myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
+            plotutils.myText(0.6,0.76,'mean=%.3f'%self.h_z0_initial.GetFunction('gaus').GetParameter(1),0.05,1)
+            plotutils.myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_initial.GetFunction('gaus').GetParameter(2),0.05,1)
         else:
-            myText(0.6,0.7,'#sigma=?',0.05,1)                        
+            plotutils.myText(0.6,0.7,'#sigma=?',0.05,1)                        
         c_impactParameters_corr.cd(3)
         self.h_d0_gbl.Fit('gaus','Q')
         self.h_d0_gbl.Draw()
         if self.h_d0_gbl.GetFunction('gaus') != None:
-            myText(0.6,0.76,'mean=%.3f'%self.h_d0_gbl.GetFunction('gaus').GetParameter(1),0.05,1)
-            myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
+            plotutils.myText(0.6,0.76,'mean=%.3f'%self.h_d0_gbl.GetFunction('gaus').GetParameter(1),0.05,1)
+            plotutils.myText(0.6,0.7,'#sigma=%.3f'%self.h_d0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
         else:
-            myText(0.6,0.7,'#sigma=?',0.05,1)                                    
+            plotutils.myText(0.6,0.7,'#sigma=?',0.05,1)                                    
         c_impactParameters_corr.cd(4)
         self.h_z0_gbl.Fit('gaus','Q')
         self.h_z0_gbl.Draw()
         if self.h_z0_gbl.GetFunction('gaus') != None:
-            myText(0.6,0.76,'mean=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(1),0.05,1)
-            myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
+            plotutils.myText(0.6,0.76,'mean=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(1),0.05,1)
+            plotutils.myText(0.6,0.7,'#sigma=%.3f'%self.h_z0_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
         else:
-            myText(0.6,0.7,'#sigma=?',0.05,1)                                                
+            plotutils.myText(0.6,0.7,'#sigma=?',0.05,1)                                                
         
         
         c_perPar_res = TCanvas('c_perPar_res_initial'+self.halftag,'c_perPar_res_initial'+self.halftag,10,10,690*2,390)
@@ -719,8 +738,8 @@ class plotter:
                 idToSensor[ii] = sensor
             i=i+1
         
-        setGraphXLabels(gr_res_initial_sensor_mean,idToSensor)
-        setGraphXLabels(gr_res_initial_sensor_rms,idToSensor)
+        plotutils.setGraphXLabels(gr_res_initial_sensor_mean,idToSensor)
+        plotutils.setGraphXLabels(gr_res_initial_sensor_rms,idToSensor)
         
         
         
@@ -756,11 +775,37 @@ class plotter:
             
             i=i+1
         
-        setGraphXLabels(gr_res_gbl_sensor_mean,idToSensor)
-        setGraphXLabels(gr_res_gbl_sensor_rms,idToSensor)
+        plotutils.setGraphXLabels(gr_res_gbl_sensor_mean,idToSensor)
+        plotutils.setGraphXLabels(gr_res_gbl_sensor_rms,idToSensor)
         
         
-        
+
+        c_xTcorr_sensor = TCanvas('c_xTcorr_sensor'+self.halftag,'c_xTcorr_sensor'+self.halftag,10,10,690,390*2)
+        c_xTcorr_sensor.Divide(self.nSensorRows,self.nSensorCols)
+        ms = sorted(self.h_map_xTcorr_layer,key=getLayer)
+        idToSensor = {}
+        for sensor in ms:
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
+            c_xTcorr_sensor.cd(i)
+            h = self.h_map_xTcorr_layer[sensor] 
+            if h.GetEntries() > 10.:
+                h.Fit('gaus','Q')
+            h.Draw()
+
+
+        c_yTcorr_sensor = TCanvas('c_yTcorr_sensor'+self.halftag,'c_yTcorr_sensor'+self.halftag,10,10,690,390*2)
+        c_yTcorr_sensor.Divide(self.nSensorRows,self.nSensorCols)
+        ms = sorted(self.h_map_yTcorr_layer,key=getLayer)
+        idToSensor = {}
+        for sensor in ms:
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
+            c_yTcorr_sensor.cd(i)
+            h = self.h_map_yTcorr_layer[sensor] 
+            if h.GetEntries() > 10.:
+                h.Fit('gaus','Q')
+            h.Draw()
+
+
         
         c_res_gbl_vs_vpred_sensor = TCanvas('c_res_gbl_vs_vpred_sensor'+self.halftag,'c_res_gbl_vs_vpred_sensor'+self.halftag,10,10,690,int(390*2))
         c_res_gbl_vs_vpred_sensor.Divide(self.nSensorRows,self.nSensorCols)
@@ -801,7 +846,7 @@ class plotter:
                 fnc.SetLineStyle(3)
                 fnc.Draw('same,L')
                 c_res_gbl_vs_vpred_sensor_prf.cd(i)
-                myText(0.7,0.1,"a1=%.2e a2=%.2e"% (fnc.GetParameter(0),fnc.GetParameter(1)),0.25,2)
+                plotutils.myText(0.7,0.1,"a1=%.2e a2=%.2e"% (fnc.GetParameter(0),fnc.GetParameter(1)),0.25,2)
         
 
         c_res_gbl_vs_u_sensor_prf = TCanvas('c_res_gbl_vs_u_sensor_prf'+self.halftag,'c_res_gbl_vs_u_sensor_prf'+self.halftag,10,10,690,int(390*2))
@@ -823,7 +868,7 @@ class plotter:
                 fnc.SetLineStyle(3)
                 fnc.Draw('same')
                 c_res_gbl_vs_u_sensor_prf.cd(i)
-                myText(0.7,0.1,"a1=%.2e a2=%.2e"% (fnc.GetParameter(0),fnc.GetParameter(1)),0.25,2)
+                plotutils.myText(0.7,0.1,"a1=%.2e a2=%.2e"% (fnc.GetParameter(0),fnc.GetParameter(1)),0.25,2)
 
 
         c_corr_lambda_sensor = TCanvas('c_corr_lambda_sensor'+self.halftag,'c_corr_lambda_sensor'+self.halftag,10,10,690,int(390*2))
@@ -866,8 +911,8 @@ class plotter:
 
             i=i+1
 
-        setGraphXLabels(gr_corr_lambda_sensor_mean,idToSensor)
-        setGraphXLabels(gr_corr_lambda_sensor_rms,idToSensor)
+        plotutils.setGraphXLabels(gr_corr_lambda_sensor_mean,idToSensor)
+        plotutils.setGraphXLabels(gr_corr_lambda_sensor_rms,idToSensor)
 
 
         c_corrdiff_lambda_sensor = TCanvas('c_corrdiff_lambda_sensor'+self.halftag,'c_corrdiff_lambda_sensor'+self.halftag,10,10,690,int(390*2))
@@ -910,8 +955,8 @@ class plotter:
                     idToSensor[ii] = sensor
             i=i+1
         
-        setGraphXLabels(gr_corrdiff_lambda_sensor_mean,idToSensor)
-        setGraphXLabels(gr_corrdiff_lambda_sensor_rms,idToSensor)
+        plotutils.setGraphXLabels(gr_corrdiff_lambda_sensor_mean,idToSensor)
+        plotutils.setGraphXLabels(gr_corrdiff_lambda_sensor_rms,idToSensor)
 
 
 
@@ -955,8 +1000,8 @@ class plotter:
 
             i=i+1
 
-        setGraphXLabels(gr_corr_phi_sensor_mean,idToSensor)
-        setGraphXLabels(gr_corr_phi_sensor_rms,idToSensor)
+        plotutils.setGraphXLabels(gr_corr_phi_sensor_mean,idToSensor)
+        plotutils.setGraphXLabels(gr_corr_phi_sensor_rms,idToSensor)
 
 
         c_corrdiff_phi_sensor = TCanvas('c_corrdiff_phi_sensor'+self.halftag,'c_corrdiff_phi_sensor'+self.halftag,10,10,690,int(390*2))
@@ -998,8 +1043,8 @@ class plotter:
                     idToSensor[ii] = sensor
             i=i+1
         
-        setGraphXLabels(gr_corrdiff_phi_sensor_mean,idToSensor)
-        setGraphXLabels(gr_corrdiff_phi_sensor_rms,idToSensor)
+        plotutils.setGraphXLabels(gr_corrdiff_phi_sensor_mean,idToSensor)
+        plotutils.setGraphXLabels(gr_corrdiff_phi_sensor_rms,idToSensor)
 
 
 
@@ -1104,6 +1149,8 @@ class plotter:
             c_res_gbl_vs_u_sensor_prf.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_sensor_rms.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_xTcorr_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_yTcorr_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_corr_lambda_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_corr_lambda_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_corr_lambda_sensor_rms.Print('gbltst-hps-plots%s.ps'%self.getTag())
@@ -1158,7 +1205,7 @@ class plotter:
             #c_corrdiff_phi_sensor_rms.SaveAs('gbltst-hps-plots%s-%s.png'%(self.getTag(),c_corrdiff_phi_sensor_rms.GetName()))
 
 
-            saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())
+            #saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())
         
         if not nopause:
             ans = raw_input('press any key to continue')

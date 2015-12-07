@@ -7,6 +7,7 @@ sys.path.append('pythonutils')
 import utils
 import compareRootHists 
 import plotutils
+import hps_utils
 
 def getArgs():
     parser = argparse.ArgumentParser(description='Run comparison')
@@ -25,33 +26,27 @@ def getFileName(f):
     
 
 
-def getSensor(name):
-    m = re.match('.*_module_(.*)_sensor0.*',name)
-    if m!=None:
-        return m.group(1)
-    else:
-        print 'error get sensor from ', name
-
-
 def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspot=False,legends=None):
     print 'compareSensorHists for ', len(files), ' for histName ', histName, ' tag ', tag, ' beamspot ', beamspot
     sensorHistNames = []
-    sensors = utils.getSensorNames(beamspot)
+    sensors = hps_utils.getSensorNames(beamspot)
     for s in sensors:
-        #if utils.getHalf(s) != 'b' or utils.getLayer(s) !=2 or utils.getAxialStereo(s) != 'axial':
+        if hps_utils.getLayer > 3 and hps_utils.getHoleSlot(s) == 'slot':
+            continue
+        #if hps_utils.getHalf(s) != 'b' or hps_utils.getLayer(s) !=2 or hps_utils.getAxialStereo(s) != 'axial':
         #    continue
-        #if utils.getHalf(s) != 't' or utils.getLayer(s) !=6 or utils.getHoleSlot(s) != 'slot' and utils.getAxialStereo(s) != 'slot':
+        #if hps_utils.getHalf(s) != 't' or hps_utils.getLayer(s) !=6 or hps_utils.getHoleSlot(s) != 'slot' and hps_utils.getAxialStereo(s) != 'slot':
         #    continue
-        #if beamspot and utils.getLayer(s)==0:
-        #    if utils.getHalf(s) != 'b':
+        #if beamspot and hps_utils.getLayer(s)==0:
+        #    if hps_utils.getHalf(s) != 'b':
         #        print 'this beamspot sensor is weird! ', s
         #        sys.exit(1)
-        if utils.getHalf(s) == 't' and half != 'top':
+        if hps_utils.getHalf(s) == 't' and half != 'top':
             continue
-        if utils.getHalf(s) == 'b' and half != 'bottom':
+        if hps_utils.getHalf(s) == 'b' and half != 'bottom':
             continue
         addOn = ''
-        if utils.getHalf(s) == 't':
+        if hps_utils.getHalf(s) == 't':
             addOn = '_top'
         else:
             addOn = '_bot'
@@ -92,7 +87,7 @@ def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspo
             
         print 'compare ', len(histos),' root histos'
         if c != None:
-            i = utils.getCanvasIdxTwoCols(hName,beamspot)
+            i = hps_utils.getCanvasIdxTwoCols(hName,beamspot)
             currentPad = c.cd(i)
         print currentPad
         compareRootHists.compareHists(histos,legends=legends,normalize=True,fitName={'name':'gaus','rms':2},t=tag,pad=currentPad,myTextSize=0.1)
@@ -110,7 +105,7 @@ def compareSensorHists(files,histName,tag='',half=None,singleCanvas=None,beamspo
                 graphRMS[ih].SetPoint(ipoint, ipoint, rms)
                 graphMean[ih].SetPointError(ipoint, 0., meanError)
                 graphRMS[ih].SetPointError(ipoint, 0., rmsError)
-                graphBinNames[ ipoint ] = utils.getShortSensorName( hName )
+                graphBinNames[ ipoint ] = hps_utils.getshortsensorname( hName )
                 print 'mean ', mean, ' RMS ', rms, ' fg ', f.GetName()
             else:
                 print 'No fg in histo ', ih, ' name ', h.GetName()
