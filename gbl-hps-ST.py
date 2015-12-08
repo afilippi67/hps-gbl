@@ -286,6 +286,10 @@ def main():
 
             Chi2, Ndf, Lost = traj.fit()
 
+
+            #if utils.chi2Prob(Chi2,Ndf) < 0.1:
+            #    continue
+
             if args.save:
                 traj.milleOut( binaryFile )
 
@@ -301,6 +305,8 @@ def main():
                 print 'fit result: Chi2=%f Ndf=%d Lost=%d' % (Chi2, Ndf, Lost)
                 result.dump()
             
+
+
 
             # loop over the two halves and the combined to get all plots
             
@@ -353,10 +359,12 @@ def main():
                         raise HpsGblException('really, this shouldnt happen? meas= ' + str(strip.meas))
                     plots.fillSensorPlots("res_gbl_vs_u", strip.deName, [ures_gbl, strip.meas] )
 
+
+            nTracks += 1  
+
             if args.debug:
                 print 'Done processing track %d in event %d' % (track.id, event.id)
 
-            nTracks += 1  
     
     if binaryFile != None:
         if not binaryFile.closed:
