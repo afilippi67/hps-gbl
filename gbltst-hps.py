@@ -9,7 +9,8 @@ import argparse
 gblpythonpath = os.getenv('GBL','../GeneralBrokenLines/python')
 sys.path.append(gblpythonpath)
 from gblfit import GblPoint, GblTrajectory
-from hps_plots import plotter
+import hps_plots
+from ROOT import gROOT, gDirectory
 
 '''
 Simple Test Program for General Broken Lines for HPS.
@@ -55,9 +56,9 @@ def main(args):
   bfac = 0.0002998 * Bz # for Bz in Tesla, momentum in GeV and Radius in mm
   print Bz, bfac
   
-  plots = plotter(nametag,'pdf',args.testrun,True,True, args.beamspot)
-  plotsTop = plotter(nametag,'pdf',args.testrun,True,False, args.beamspot)
-  plotsBot = plotter(nametag,'pdf',args.testrun,False,True,args.beamspot)
+  plots = hps_plots.plotter(nametag,'pdf',args.testrun,True,True, args.beamspot)
+  plotsTop = hps_plots.plotter(nametag,'pdf',args.testrun,True,False, args.beamspot)
+  plotsBot = hps_plots.plotter(nametag,'pdf',args.testrun,False,True,args.beamspot)
   
   #print " GblHpsTest $Rev: 234 $ ", nTry, nLayer
   nTry = 0
@@ -555,6 +556,8 @@ def main(args):
     plots.show(args.save,args.nopause)
     plotsTop.show(args.save,args.nopause)
     plotsBot.show(args.save,args.nopause)
+    if args.save:
+      hps_plots.saveHistosToFile(gDirectory,'gbltst-hps-plots-%s.root' % nametag)
 
 
 def getArgs():
@@ -573,7 +576,8 @@ def getArgs():
   parser.add_argument('--testrun',action='store_true',help='Test Run input')
   parser.add_argument('--minStrips',type=int,default=0,help='Minimum number of strip clusters per track')
   parser.add_argument('--beamspot',action='store_true',help='Beamspot included as hit')
-  parser.add_argument('--minP',type=float,help='Minimum track momentum')
+  parser.add_argument('--minP',type=float,help='Minimum track momentum in GeV/c')
+  parser.add_argument('--batch','-b',action='store_true',help='Run ROOT in batch mode.')
   
   args = parser.parse_args();
   print args
@@ -583,6 +587,8 @@ def getArgs():
 if __name__ == '__main__':
 
   args = getArgs()
+
+  gROOT.SetBatch(args.batch)
 
 
   if args.debug:

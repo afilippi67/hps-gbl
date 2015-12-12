@@ -10,7 +10,7 @@ gblpythonpath = os.getenv('GBL','../GeneralBrokenLines/python')
 sys.path.append(gblpythonpath)
 from gblfit import GblPoint, GblTrajectory
 import hps_plots
-from ROOT import gDirectory
+from ROOT import gDirectory, gROOT
 
 '''
 General Broken Lines script for HPS with no B-field
@@ -28,6 +28,7 @@ def getArgs():
   parser.add_argument('--name',help='Name to add to results')
   parser.add_argument('--save','-s',action='store_true',help='Save output')
   parser.add_argument('--nopause',action='store_true',help='Require manual input to continue program.')
+  parser.add_argument('--batch','-b',action='store_true',help='Run ROOT in batch mode.')
   args = parser.parse_args();
   #print args
   return args
@@ -67,7 +68,7 @@ def main():
     # loop over all events
     for event in events:
 
-        if args.debug:
+        if args.debug or event.id % 1000 == 0:
             print 'event %d has %d tracks ' % (event.id, len(event.tracks))
 
         # loop over all tracks in the event
@@ -391,6 +392,8 @@ def main():
 
 if __name__ == '__main__':
     args = getArgs()
+
+    gROOT.SetBatch(args.batch)
 
     if args.debug:
         utils.debug = True

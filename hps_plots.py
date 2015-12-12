@@ -158,8 +158,6 @@ class plotter:
                 l = getLayer(deName)
                 xmax = 0.01 + (l-1)*0.6
                 xmin = -1.*xmax
-                #if l==0: h = TH1F('h_res_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,,0.8)
-                #else:    h = TH1F('h_res_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 h = TH1F('h_res_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_layer[deName] = h
             h.Fill(val)
@@ -168,11 +166,11 @@ class plotter:
                 h = self.h_map_res_gbl_vs_vpred_layer[deName]
             else:
                 l = getLayer(deName)
-                xmax = -55.0
-                xmin = 55.0
-                ymax = 0.01 + (l-1)*0.6
-                ymin = -1.*xmax
-                h = TH2F('h_res_gbl_vs_vpred_%s%s'%(deName,self.halftag),'%s;Pred v (mm);GBL residual in measurement direction (mm)'%deName,20,xmin,xmax,40,ymin,ymax)
+                xmax = 55.0
+                xmin = -1.*xmax
+                ymax = 0.04
+                ymin = -1.*ymax
+                h = TH2F('h_res_gbl_vs_vpred_%s%s'%(deName,self.halftag),'%s;Pred v (mm);GBL residual in measurement direction (mm)'%deName,20,xmin,xmax,50,ymin,ymax)
                 self.h_map_res_gbl_vs_vpred_layer[deName] = h
             h.Fill(val[1],val[0])
         elif type=="res_gbl_vs_u":
@@ -180,11 +178,11 @@ class plotter:
                 h = self.h_map_res_gbl_vs_u_layer[deName]
             else:
                 l = getLayer(deName)
-                xmax = -20.0
-                xmin = 20.0
-                ymax = 0.01 + (l-1)*0.6
-                ymin = -1.*xmax
-                h = TH2F('h_res_gbl_vs_u_%s%s'%(deName,self.halftag),'%s;Meas u (mm);GBL residual in measurement direction (mm)'%deName,20,xmin,xmax,40,ymin,ymax)
+                xmax = 20.0
+                xmin = -1.*xmax
+                ymax = 0.04
+                ymin = -1.*ymax
+                h = TH2F('h_res_gbl_vs_u_%s%s'%(deName,self.halftag),'%s;Meas u (mm);GBL residual in measurement direction (mm)'%deName,20,xmin,xmax,50,ymin,ymax)
                 self.h_map_res_gbl_vs_u_layer[deName] = h
             h.Fill(val[1],val[0])
         elif type=="res_truth":
