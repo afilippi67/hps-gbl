@@ -2,14 +2,18 @@
 
 import sys, os, re
 import argparse
-from ROOT import TFile, TH1F, TF1, TCanvas, gDirectory, TGraph
+from ROOT import TFile, TH1F, TF1, TCanvas, gDirectory, TGraph, TGraphErrors, gROOT
 sys.path.append('pythonutils')
 import plotutils
+import hps_utils
 
 def getArgs():
     parser = argparse.ArgumentParser(description='Run analysis')
     parser.add_argument('--file','-f',nargs=1, required=True,help='Input files.')
     parser.add_argument('--tag','-t',default='',help='Tag to output files.')
+    parser.add_argument('-b','--batch', action='store_true',help='batch mode')
+    parser.add_argument('-r','--regexp', help='regexp to down select')
+    parser.add_argument('-u','--uflip', action='store_true', help='Flip sign of u-residuals for stereo sensors.')
     args = parser.parse_args();
     print args
     return args
@@ -135,21 +139,118 @@ def plotResiduals(f,name,half):
 
 
 
+
+def plotRotations(t_file):    
+
+    names = hps_utils.getSensorNames()
+
+    print ' got ', len(names), ' sensor names'
+
+    hname = 'h_res_gbl_vs_vpred_'
+
+    
+    c = TCanvas('c','c',10,10,700,500)
+
+    grSlopes = TGraphErrors()
+    grSlopes.SetName('slopes_' + hname)
+    grSlopesBinLabels = []
+    for sensorname in names:
+
+        name = hname + sensorname
+
+        if args.regexp != None:
+            m = re.match(args.regexp, name)
+            if m == None:
+                print 'skip this histogram \"', name, '\"'
+                continue
+        
+        h = t_file.Get(name)
+        if h == None:
+            print 'no histogram \"', name, '\"'
+            sys.exit(1)
+
+        print 'process \"', name , '\"'
+        c.Clear()
+        h.Draw('colz')
+        c.SaveAs(name + '-' + args.tag + '.png')
+        #ans = raw_input('continue?')
+
+        grMean = TGraphErrors()
+        grMean.SetName( h.GetName() + '_prjYmean' )
+        for b in range(1, h.GetNbinsX()+1):
+            h_p = h.ProjectionY(h.GetName() + '_prjy' + str(b), b, b, 'E')
+            f = None
+            if h_p.GetEntries() > 77.:
+                peakbin = findPeakBin(h_p)
+                x =  h_p.GetBinCenter(peakbin)
+                minv = x - 1.5*h_p.GetRMS()
+                maxv = x + 1.5*h_p.GetRMS()
+                print 'vpred ', h.GetXaxis().GetBinCenter(b) , ' peakbin ', peakbin, ' c ' , h_p.GetBinCenter(peakbin), ' minv ', minv, ' maxv ', maxv
+                f = TF1('f'+'_'+name,'gaus',minv,maxv)
+                h_p.Fit(f,'RQ')
+                ipoint = grMean.GetN()
+                grMean.SetPoint(ipoint, h.GetXaxis().GetBinCenter(b), f.GetParameter(1))
+                grMean.SetPointError(ipoint, 0., f.GetParError(1))
+            c.Clear()
+            if f != None:
+                plotutils.myText(0.5,0.85,'<m>=%.2f #sigma=%.2f'%(f.GetParameter(1),f.GetParameter(2)), 0.05, 2)
+            h_p.Draw()
+            c.SaveAs(h_p.GetName() + '-' + args.tag + '.png')
+            #ans = raw_input('continue?')
+
+        grMean.SetTitle(name + ';;mean')
+        grMean.SetMarkerStyle(20)
+        c.Clear()
+        fpol1 = TF1('f' + grMean.GetName(),'pol1')
+        grMean.Fit(fpol1)
+        grMean.Draw('ALP')
+        plotutils.myText(0.35,0.8,'slope=%.2e m=%.2e'%(fpol1.GetParameter(1),fpol1.GetParameter(0)), 0.05, 2)
+        ipoint = grSlopes.GetN()
+        if args.uflip:
+            grSlopes.SetPoint( ipoint, ipoint, -1.*fpol1.GetParameter(1) )
+        else:
+            grSlopes.SetPoint( ipoint, ipoint, fpol1.GetParameter(1) )
+        grSlopes.SetPointError( ipoint, 0., fpol1.GetParError(1) )
+        grSlopesBinLabels.append( hps_utils.getshortsensorname( sensorname ) )
+        c.SaveAs(name + '-mean-' + args.tag + '.png')
+        #ans = raw_input('continue?')
+
+    c.Clear()
+    grSlopes.Draw('ALP')
+    plotutils.setBinLabels( grSlopes, grSlopesBinLabels )
+    c.SetBottomMargin(0.2)
+    if args.uflip:
+        plotutils.myText(0.35,0.8,'u-flipped', 0.05, 2)
+    else:
+        plotutils.myText(0.35,0.8,'NOT u-flipped', 0.05, 2)
+    if args.uflip:
+        c.SaveAs(grSlopes.GetName() + '-uflipped-' + args.tag + '.png')
+    else:
+        c.SaveAs(grSlopes.GetName() + '-' + args.tag + '.png')
+    ans = raw_input('continue?')
+    
+
+
+
+
+
+
 def main(args):
 
     if len(args.file)==1:
 
         f = TFile(args.file[0])
-        fitMom(f,'h_p')
-        fitMom(f,'h_p_gbl')
-        fitMom(f,'h_p_top')
-        fitMom(f,'h_p_gbl_top')
-        fitMom(f,'h_p_bot')
-        fitMom(f,'h_p_gbl_bot')
+        #fitMom(f,'h_p')
+        #fitMom(f,'h_p_gbl')
+        #fitMom(f,'h_p_top')
+        #fitMom(f,'h_p_gbl_top')
+        #fitMom(f,'h_p_bot')
+        #fitMom(f,'h_p_gbl_bot')
         #plotResiduals(f,'h_res','top')
         #plotResiduals(f,'h_res','bot')
         #plotResiduals(f,'h_res_gbl','top')
         #plotResiduals(f,'h_res_gbl','bot')
+        plotRotations(f)
         ans = raw_input('continue?')
         f.Close()
 
@@ -160,5 +261,7 @@ def main(args):
 if __name__ == '__main__':
 
     args = getArgs()
+
+    gROOT.SetBatch(args.batch)
 
     main(args)
