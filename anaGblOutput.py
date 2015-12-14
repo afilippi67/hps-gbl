@@ -146,6 +146,7 @@ def plotRotations(t_file):
 
     print ' got ', len(names), ' sensor names'
 
+    #hname = 'h_res_gbl_vs_u_'
     hname = 'h_res_gbl_vs_vpred_'
 
     
@@ -206,9 +207,11 @@ def plotRotations(t_file):
         grMean.Draw('ALP')
         plotutils.myText(0.35,0.8,'slope=%.2e m=%.2e'%(fpol1.GetParameter(1),fpol1.GetParameter(0)), 0.05, 2)
         ipoint = grSlopes.GetN()
-        if args.uflip:
+        if args.uflip and hps_utils.getAxialStereo(sensorname) == 'stereo':
+            print 'flip ', sensorname, ' ', fpol1.GetParameter(1) , ' -> ',  -1.*fpol1.GetParameter(1)
             grSlopes.SetPoint( ipoint, ipoint, -1.*fpol1.GetParameter(1) )
         else:
+            print 'NO flip ', sensorname, ' ', fpol1.GetParameter(1) 
             grSlopes.SetPoint( ipoint, ipoint, fpol1.GetParameter(1) )
         grSlopes.SetPointError( ipoint, 0., fpol1.GetParError(1) )
         grSlopesBinLabels.append( hps_utils.getshortsensorname( sensorname ) )
