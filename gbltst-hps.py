@@ -46,13 +46,12 @@ def main(args):
     binaryFile = open("%s.dat" % binaryFileName, "wb")
 
   inputFile = open(args.file, 'r')
-  events = hpsevent.readHPSEvents(inputFile, args.nevents)
+  events = hpsevent.readHPSEvents(inputFile, args.nevents, args.ntracks)
   
   print 'Read %d events from file' % len(events)
 
   if len(events) > 0:
     Bz = events[0].Bz
-  #Bz = -0.5 # full detector  -0.491 for test run detector
   bfac = 0.0002998 * Bz # for Bz in Tesla, momentum in GeV and Radius in mm
   print Bz, bfac
   
@@ -564,7 +563,8 @@ def getArgs():
   parser = argparse.ArgumentParser(description='Run HPS GBL code')
   parser.add_argument('file',help='Input file.')
   parser.add_argument('--debug','-d',action='store_true',help='Debug output flag.')
-  parser.add_argument('--nevents','-n',type=int,default=-1,help='Max events to process.')
+  parser.add_argument('--nevents',type=int,default=-1,help='Max events to process.')
+  parser.add_argument('--ntracks','-n',type=int,default=-1,help='Max tracks to process.')
   parser.add_argument('--notop',action='store_true',help='Reject top tracks.')
   parser.add_argument('--nobottom',action='store_true',help='Reject bottom tracks.')
   parser.add_argument('--name',help='Name to add to results')
