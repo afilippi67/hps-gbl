@@ -177,16 +177,16 @@ class GBLTrajectory:
 
 
 
-def readHPSEvents(filename,nEventsMax):
+def readHPSEvents(filename,nEventsMax,nTracksMax):
     """Read and create the simple event model from a text file data format."""
 
     
-    print 'Read max %d events from file' % nEventsMax
+    print 'Read max %d events or %d tracks from file' % (nEventsMax, nTracksMax)
     events = []
     event = None
     track = None
     strip = None
-
+    ntracks = 0
 
     with open(filename, 'r') as f:
 
@@ -199,23 +199,31 @@ def readHPSEvents(filename,nEventsMax):
                 if event!=None:
                     if strip!=None:
                         track.strips.append(strip)
-                        if debug:  
+                        if debug:
                             print 'Added strip %d millepedeLayer %d to list of strips for track %d in event %d' % (strip.id,strip.millepedeId,track.id,event.id)
                     if track!=None:
                         event.addTrack(track)
                         if debug:  
                             print 'Added track %d to list of tracks in event %d' % (track.id,event.id)
-                    events.append(event)
-                    if debug:  
-                        print 'Added event %d to list' % event.id
+                    if len(event.tracks) > 0:
+                        events.append(event)
+                        ntracks += len( event.tracks )
+                        if debug or (len(events) % 10000 == 0 and len(events) > 0):  
+                            print 'Added event %d to list' % event.id
+                        if debug or (ntracks % 1000 == 0 and ntracks > 0):  
+                            print 'Added ', ntracks, ' so far'
                     if nEventsMax!=-1 and len(events)>=nEventsMax:
+                        return events
+                    if nTracksMax!=-1 and ntracks >= nTracksMax:
                         return events
                     event = None
                     track = None
                     strip = None
                 words = line.split('New Event')[1].split()
                 if len(words) != 2: 
-                    print 'New event line is wrong: ', words
+                    print 'New event line has wrong nr of words: ', len(words)
+                    print line
+                    sys.exit(1)
                 event = HPSEvent(int(words[0]),float(words[1]))
 
             elif 'New Track' in line:

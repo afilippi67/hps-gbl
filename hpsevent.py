@@ -217,12 +217,13 @@ class GBLResults:
 
 
 
-def readHPSEvents(infile,nEventsMax):
-    print 'Read max %d events from file' % nEventsMax
+def readHPSEvents(infile,nEventsMax,nTracksMax):
+    print 'Read max %d events or %d tracks from file' % (nEventsMax, nTracksMax)
     events = []
     event = None
     track = None
     strip = None
+    ntracks = 0
     for line in infile:
         if debug: print 'Processing line \"%s\"' % line
         if 'New Event' in line:
@@ -235,10 +236,16 @@ def readHPSEvents(infile,nEventsMax):
                     event.tracks.append(track)
                     if debug:  
                         print 'Added track %d to list of tracks in event %d' % (track.id,event.id)
-                events.append(event)
-                if debug:  
-                    print 'Added event %d to list' % event.id
+                if len(event.tracks) > 0:
+                        events.append(event)
+                        ntracks += len( event.tracks )
+                        if debug or (len(events) % 10000 == 0 and len(events) > 0):  
+                            print 'Added event %d to list' % event.id
+                        if debug or (ntracks % 1000 == 0 and ntracks > 0):  
+                            print 'Added ', ntracks, ' so far'
                 if nEventsMax!=-1 and len(events)>=nEventsMax:
+                    return events
+                if nTracksMax!=-1 and ntracks >= nTracksMax:
                     return events
                 event = None
                 track = None
