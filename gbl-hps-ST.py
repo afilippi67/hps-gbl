@@ -24,7 +24,8 @@ def getArgs():
   parser = argparse.ArgumentParser(description='Run HPS GBL code')
   parser.add_argument('file',help='Input file.')
   parser.add_argument('--debug','-d',action='store_true',help='Debug output flag.')
-  parser.add_argument('--nevents','-n',type=int,default=-1,help='Max events to process.')
+  parser.add_argument('--ntracks','-n',type=int,default=-1,help='Max tracks to process.')
+  parser.add_argument('--nevents',type=int,default=-1,help='Max events to process.')
   parser.add_argument('--name',help='Name to add to results')
   parser.add_argument('--save','-s',action='store_true',help='Save output')
   parser.add_argument('--nopause',action='store_true',help='Require manual input to continue program.')
@@ -56,7 +57,7 @@ def main():
         binaryFile = open("%s.dat" % binaryFileName, "wb")
     
     # Open input file
-    events = hpseventst.readHPSEvents(args.file, args.nevents)
+    events = hpseventst.readHPSEvents(args.file, args.nevents, args.ntracks)
     
     print 'Read %d events from file' % len(events)
 
@@ -68,8 +69,12 @@ def main():
     # loop over all events
     for event in events:
 
-        if args.debug or event.id % 1000 == 0:
-            print 'event %d has %d tracks ' % (event.id, len(event.tracks))
+        if args.ntracks > 0 and nTracks > args.ntracks:
+            break
+
+        if args.debug or nTracks % 1000 == 0:
+            print 'Processed %d tracks, now at event id %d with %d tracks ' % (nTracks, event.id, len(event.tracks))
+
 
         # loop over all tracks in the event
         for track in event.tracks:
