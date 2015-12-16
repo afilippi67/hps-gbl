@@ -179,6 +179,7 @@ class GBLResults:
         for i in range(len(self.locPar[point])):
             s += "%5s %.10f " % (self.getIdxStr(i), self.locPar[point][i])
         return s
+
     def getIdxStr(self,i):
         s = ""
         if i==self.idx_qoverp:
@@ -207,7 +208,30 @@ class GBLResults:
             print "%3d %s" % (point, self.getCLParStr(point))
         print "\n==========="
 
+    def getPerParCorr(self,label,bfac):
+        '''Calculate new perigee frame track parameters'''
 
+        # corrections to in perigee frame
+        corrPer = self.track.prjClToPer(self.xTCorr(label),self.yTCorr(label))
+
+        # corrections to phi
+        xTPrimeCorr = self.locPar[label][self.idx_phi]
+
+        # corrections to lambda
+        yTPrimeCorr = self.locPar[label][self.idx_lambda]
+
+        #calculate new slope
+        lambda_gbl = math.atan( track.slope() ) + yTPrimeCorr
+        slope_gbl = math.tan( lambda_gbl )
+        theta_gbl = math.pi / 2.0 - math.atan( slope_gbl )
+
+        # correction to curvature
+        C_gbl = bfac * self.qOverP_gbl(bfac) / Math.cos(lambda_gbl);
+
+        # calculate new phi0
+        phi0_gbl = track.phi0() + xTPrimeCorr - corrPer[0] * C_gbl
+
+        return [ C_gbl, theta_gbl, phi_gbl, d0_gbl(label), z0_gbl(label) ]
         
 #def rotateGlToMeas(strip,vector):
 #    rotMat = np.array([strip.u, strip.v, strip.w])
