@@ -221,17 +221,17 @@ class GBLResults:
         yTPrimeCorr = self.locPar[label][self.idx_lambda]
 
         #calculate new slope
-        lambda_gbl = math.atan( track.slope() ) + yTPrimeCorr
-        slope_gbl = math.tan( lambda_gbl )
-        theta_gbl = math.pi / 2.0 - math.atan( slope_gbl )
+        lambda_gbl = atan( self.track.slope() ) + yTPrimeCorr
+        slope_gbl = tan( lambda_gbl )
+        theta_gbl = pi / 2.0 - atan( slope_gbl )
 
         # correction to curvature
-        C_gbl = bfac * self.qOverP_gbl(bfac) / Math.cos(lambda_gbl);
+        C_gbl = abs(bfac) * self.qOverP_gbl(bfac) / cos(lambda_gbl)
 
         # calculate new phi0
-        phi0_gbl = track.phi0() + xTPrimeCorr - corrPer[0] * C_gbl
+        phi0_gbl = self.track.phi0() + xTPrimeCorr - corrPer[0] * C_gbl
 
-        return [ C_gbl, theta_gbl, phi_gbl, d0_gbl(label), z0_gbl(label) ]
+        return [ C_gbl, theta_gbl, phi0_gbl, self.d0_gbl(label), self.z0_gbl(label) ]
         
 #def rotateGlToMeas(strip,vector):
 #    rotMat = np.array([strip.u, strip.v, strip.w])
