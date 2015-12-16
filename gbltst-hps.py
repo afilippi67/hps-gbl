@@ -525,7 +525,7 @@ def main(args):
           plot.fillSensorPlots("iso", strip.deName, strip.iso)
 
           # plot residuals of the seed vs the corrected seed
-          if nTry < 9999999999:
+          if nTry < 10:
             uResSeed = utils.getMeasurementResidualIterative(track.perPar,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
             perParCorr = result.getPerParCorr(iLabel,bfac)
             #print 'perPar     ', track.perPar
