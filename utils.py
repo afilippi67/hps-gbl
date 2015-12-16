@@ -275,12 +275,12 @@ def getXPlanePositionIterative(parameters,origin,normal,eps=0.0001):
 
 
 
-def getMeasurementResidualIterative(perPar, origin, w, eps):
+def getMeasurementResidualIterative(perPar, origin, u ,w, meas, eps):
     '''Calculate the residual in the measurement direction for a set of track parameters.'''
     predIter = getXPlanePositionIterative(perPar,origin, w, eps)
-    diffTrk = predIter - strip.origin
-    uPredIter = np.dot(strip.u , diffTrk.T)
-    uResIter = strip.meas - uPredIter
+    diffTrk = predIter - origin
+    uPredIter = np.dot(u , diffTrk.T)
+    uResIter = meas - uPredIter
     return uResIter
 
 
