@@ -187,13 +187,14 @@ def main(args):
       
         # cross-check track position and residuals
         if nTry < 10:
-          predIter = utils.getXPlanePositionIterative(track.perPar,strip.origin,strip.w,1.0e-8)
-          diffTrk = predIter - strip.origin
-          uPredIter = np.dot(strip.u , diffTrk.T)
-          uResIter = strip.meas - uPredIter
+          uResIter = getMeasurementResidualIterative(track.perPar,strip.origin,strip.w,1.0e-8)
+          #predIter = utils.getXPlanePositionIterative(track.perPar,strip.origin,strip.w,1.0e-8)
+          #diffTrk = predIter - strip.origin
+          #uPredIter = np.dot(strip.u , diffTrk.T)
+          #uResIter = strip.meas - uPredIter
           if abs(uResIter - strip.ures) > 1.0e-6:
             print 'WARNING diff %.10f uResIter %.10f compared to %.10f' % (uResIter - strip.ures,uResIter,strip.ures)
-            print 'predIter ', predIter, ' origin ', strip.origin, ' diffTrk ',diffTrk,' u ', strip.u, ' diffTrk ',diffTrk.T
+            #print 'predIter ', predIter, ' origin ', strip.origin, ' diffTrk ',diffTrk,' u ', strip.u, ' diffTrk ',diffTrk.T
             sys.exit(1)
         
 
@@ -523,6 +524,18 @@ def main(args):
           #  #sys.exit(1)
           plot.fillSensorPlots("res_gbl_vs_u", strip.deName, [ures_gbl, strip.meas] )
           plot.fillSensorPlots("iso", strip.deName, strip.iso)
+
+          # plot residuals of the seed vs the corrected seed
+          if nTry < 10:
+            uResSeed = getMeasurementResidualIterative(track.perPar,strip.origin,strip.w,1.0e-8)
+            perParCorr = result.getPerParCorr(label,bfac)
+            print 'perPar     ', track.perPar
+            print 'perParCorr ', perParCorr
+            uResSeedCorr = getMeasurementResidualIterative(perParCorr,strip.origin,strip.w,1.0e-8)
+            print 'uResSeed     ', uResSeed
+            print 'uResSeedCorr ', uResSeedCorr
+          
+
 
           
 
