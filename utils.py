@@ -1,8 +1,9 @@
-import sys, re
+import sys, re, os
 import numpy as np
 from math import cos,atan,tan,pi,sin,asin,copysign
 from ROOT import TMath
-sys.path.append('pythonutils')
+pyutilspath = os.getenv('PYTHONUTILS','pythonutils')
+sys.path.append(pyutilspath)
 import hps_utils
 
 

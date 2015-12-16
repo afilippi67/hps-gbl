@@ -1,11 +1,12 @@
-import re, sys, subprocess
+import re, sys, os, subprocess
 from ROOT import TH1F, TH2F, TGraph, TGraphErrors, TCanvas, TLegend, TLatex, gStyle, gDirectory, TIter, TFile, gPad
 from ROOT import Double as ROOTDouble
 from math import sqrt
-sys.path.append('pythonutils')
+pyutilspath = os.getenv('PYTHONUTILS','pythonutils')
+sys.path.append(pyutilspath)
 import plotutils
 from hps_utils import getLayer, getHalf, getAxialStereo,getHoleSlot,getCanvasIdxTwoCols
-
+dir()
 
 class plotter:
     def __init__(self,tag,picExt,testRunFlag,isTop=False,isBot=True,beamspot=False):
