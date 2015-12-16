@@ -186,7 +186,7 @@ def main(args):
       
         # cross-check track position and residuals
         if nTry < 10:
-          uResIter = getMeasurementResidualIterative(track.perPar,strip.origin,strip.w,1.0e-8)
+          uResIter = utils.getMeasurementResidualIterative(track.perPar,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
           #predIter = utils.getXPlanePositionIterative(track.perPar,strip.origin,strip.w,1.0e-8)
           #diffTrk = predIter - strip.origin
           #uPredIter = np.dot(strip.u , diffTrk.T)
@@ -525,15 +525,15 @@ def main(args):
           plot.fillSensorPlots("iso", strip.deName, strip.iso)
 
           # plot residuals of the seed vs the corrected seed
-          if nTry < 10:
-            uResSeed = getMeasurementResidualIterative(track.perPar,strip.origin,strip.w,1.0e-8)
-            perParCorr = result.getPerParCorr(label,bfac)
-            print 'perPar     ', track.perPar
-            print 'perParCorr ', perParCorr
-            uResSeedCorr = getMeasurementResidualIterative(perParCorr,strip.origin,strip.w,1.0e-8)
-            print 'uResSeed     ', uResSeed
-            print 'uResSeedCorr ', uResSeedCorr
-          
+          if nTry < 9999999999:
+            uResSeed = utils.getMeasurementResidualIterative(track.perPar,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
+            perParCorr = result.getPerParCorr(iLabel,bfac)
+            #print 'perPar     ', track.perPar
+            #print 'perParCorr ', perParCorr
+            uResSeedCorr = utils.getMeasurementResidualIterative(perParCorr,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
+            #print 'uResSeed     ', uResSeed, ' label ', iLabel, ' sensor ', strip.deName
+            #print 'uResSeedCorr ', uResSeedCorr, ' label ', iLabel, ' sensor ', strip.deName
+            plot.fillSensorPlots("res_diff_gbl_seed", strip.deName, abs(uResSeedCorr) - abs(uResSeed) )
 
 
           

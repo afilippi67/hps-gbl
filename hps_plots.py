@@ -126,7 +126,8 @@ class plotter:
         self.h_clParGBL_pull_lambda = TH1F('h_clParGBL_pull_lambda'+self.halftag,';#lambda-#lambda_{truth}',50,-5.0,5.0)
         self.h_clParGBL_pull_phi = TH1F('h_clParGBL_pull_phi'+self.halftag,';#phi-#phi_{truth}',50,-5.0,5.0)
         self.h_map_res_layer = {}
-        self.h_map_res_gbl_layer = {}
+        self.h_map_res_gbl_layer = {} 
+        self.h_map_res_diff_gbl_seed_layer = {} 
         self.h_map_xTcorr_layer = {}
         self.h_map_yTcorr_layer = {}
         self.h_map_res_gbl_vs_vpred_layer = {}
@@ -209,6 +210,16 @@ class plotter:
                 xmin = -1.*xmax
                 h = TH1F('h_res_gbl_%s%s'%(deName,self.halftag),'%s;GBL residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_gbl_layer[deName] = h
+            h.Fill(val)
+        elif type=="res_diff_gbl_seed":
+            if deName in self.h_map_res_diff_gbl_seed_layer:
+                h = self.h_map_res_diff_gbl_seed_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 1.0
+                xmin = -1.*xmax
+                h = TH1F('h_res_diff_gbl_seed_%s%s'%(deName,self.halftag),'%s;|GBL residual| - |seed residual| (mm);Entries'%deName,50,xmin,xmax)
+                self.h_map_res_diff_gbl_seed_layer[deName] = h
             h.Fill(val)
         elif type=="xTcorr":
             if deName in self.h_map_xTcorr_layer:
@@ -309,6 +320,7 @@ class plotter:
                 h.Fill(val)
         else:
             print "Thus type ius not defined ", type
+            sys.exit(1)
     
                 
     def show(self,save,nopause):
@@ -776,6 +788,34 @@ class plotter:
         
         plotutils.setGraphXLabels(gr_res_gbl_sensor_mean,idToSensor)
         plotutils.setGraphXLabels(gr_res_gbl_sensor_rms,idToSensor)
+
+
+
+
+        c_res_diff_gbl_seed_sensor = TCanvas('c_res_diff_gbl_seed_sensor'+self.halftag,'c_res_diff_gbl_seed_sensor'+self.halftag,10,10,690,390*2)
+        c_res_diff_gbl_seed_sensor.Divide(self.nSensorRows,self.nSensorCols)
+        i = 1
+        ms = sorted(self.h_map_res_diff_gbl_seed_layer,key=getLayer)
+        idToSensor = {}
+        for sensor in ms:
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
+            c_res_diff_gbl_seed_sensor.cd(i)
+            h = self.h_map_res_diff_gbl_seed_layer[sensor] 
+            h.Draw()
+            
+            i=i+1
+        
+        
+
+
+
+
+
+
+
+
+
+
         
         
 
@@ -1142,6 +1182,7 @@ class plotter:
             c_res_initial_sensor_rms.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_truth_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_diff_gbl_seed_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_vs_vpred_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_vs_vpred_sensor_prf.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_vs_u_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
