@@ -235,6 +235,49 @@ def plotRotations(t_file):
 
 
 
+def plotGBLvsSeedResiduals(t_file, half):    
+
+    names = hps_utils.getSensorNames()
+
+    print ' got ', len(names), ' sensor names'
+
+    hname = 'h_res_diff_gbl_seed_'
+    #h_res_diff_gbl_seed_module_L4b_halfmodule_axial_hole_sensor0_bot
+    
+    c = TCanvas('c','c',10,10,700,500)
+
+    for sensorname in names:
+
+        name = hname + sensorname
+
+        if half != '':
+            if half == 'top' and hps_utils.getHalf(sensorname) != 't':
+                continue
+            if half == 'bot' and hps_utils.getHalf(sensorname) != 'b':
+                continue            
+            name += '_' + half
+
+        if args.regexp != None:
+            m = re.match(args.regexp, name)
+            if m == None:
+                print 'skip this histogram \"', name, '\"'
+                continue
+        
+        h = t_file.Get(name)
+        if h == None:
+            print 'no histogram \"', name, '\"'
+            sys.exit(1)
+
+        print 'process \"', name , '\"'
+        c.Clear()
+        h.Draw('colz')
+        c.SaveAs(name + '-' + args.tag + '.png')
+        #ans = raw_input('continue?')
+
+
+
+
+
 
 
 
@@ -253,7 +296,9 @@ def main(args):
         #plotResiduals(f,'h_res','bot')
         #plotResiduals(f,'h_res_gbl','top')
         #plotResiduals(f,'h_res_gbl','bot')
-        plotRotations(f)
+        #plotRotations(f)
+        plotGBLvsSeedResiduals(f,'top')
+        plotGBLvsSeedResiduals(f,'bot')
         ans = raw_input('continue?')
         f.Close()
 
