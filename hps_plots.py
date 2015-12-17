@@ -6,9 +6,13 @@ pyutilspath = os.getenv('PYTHONUTILS','pythonutils')
 sys.path.append(pyutilspath)
 import plotutils
 from hps_utils import getLayer, getHalf, getAxialStereo,getHoleSlot,getCanvasIdxTwoCols
-dir()
+
+
 
 class plotter:
+    canWy_wide = int(390*1.3)
+    canWx_wide = 690
+    
     def __init__(self,tag,picExt,testRunFlag,isTop=False,isBot=True,beamspot=False):
         self.picExt = picExt
         self.testRun = testRunFlag
@@ -330,7 +334,7 @@ class plotter:
 
         gStyle.SetOptStat(111111)
         
-        c_chi2_gbl = TCanvas('c_chi2_gbl'+self.halftag,'c_chi2_gbl'+self.halftag,10,10,690*2,500)
+        c_chi2_gbl = TCanvas('c_chi2_gbl'+self.halftag,'c_chi2_gbl'+self.halftag,10,10,plotter.canWx_wide,500)
         c_chi2_gbl.Divide(3,1)
         c_chi2_gbl.cd(1)
         self.h_chi2.Draw()
@@ -340,7 +344,7 @@ class plotter:
         self.h_chi2prob.Draw()
 
         
-        c_chi2_initial = TCanvas('c_chi2_initial'+self.halftag,'c_chi2_initial'+self.halftag,10,10,690*2,500)
+        c_chi2_initial = TCanvas('c_chi2_initial'+self.halftag,'c_chi2_initial'+self.halftag,10,10,plotter.canWx_wide,500)
         c_chi2_initial.Divide(3,1)
         c_chi2_initial.cd(1)
         self.h_chi2_initial.Draw()
@@ -350,7 +354,7 @@ class plotter:
         self.h_chi2prob_initial.Draw()
         
         
-        c_chi2_initial_truth = TCanvas('c_chi2_initial_truth'+self.halftag,'c_chi2_initial_truth'+self.halftag,10,10,690*2,500)
+        c_chi2_initial_truth = TCanvas('c_chi2_initial_truth'+self.halftag,'c_chi2_initial_truth'+self.halftag,10,10,plotter.canWx_wide,500)
         c_chi2_initial_truth.Divide(3,1)
         c_chi2_initial_truth.cd(1)
         self.h_chi2_initial_truth.Draw()
@@ -360,7 +364,7 @@ class plotter:
         self.h_chi2prob_initial_truth.Draw()
         
         
-        c_chi2_gbl_truth = TCanvas('c_chi2_gbl_truth'+self.halftag,'c_chi2_gbl_truth'+self.halftag,10,10,690*2,500)
+        c_chi2_gbl_truth = TCanvas('c_chi2_gbl_truth'+self.halftag,'c_chi2_gbl_truth'+self.halftag,10,10,plotter.canWx_wide,500)
         c_chi2_gbl_truth.Divide(3,1)
         c_chi2_gbl_truth.cd(1)
         self.h_chi2_gbl_truth.Draw()
@@ -370,7 +374,7 @@ class plotter:
         self.h_chi2prob_gbl_truth.Draw()
         
         
-        c_track_momentum = TCanvas('c_track_momentum'+self.halftag,'c_track_momentum'+self.halftag,10,10,690*2,500)
+        c_track_momentum = TCanvas('c_track_momentum'+self.halftag,'c_track_momentum'+self.halftag,10,10,plotter.canWx_wide,500)
         c_track_momentum.Divide(3,1)
         c_track_momentum.cd(1)
         self.h_p.SetFillStyle(1001);
@@ -406,7 +410,7 @@ class plotter:
         self.h_qOverP_corr.Draw()
         
                         
-        c_track_momentum_res = TCanvas('c_track_momentum_res'+self.halftag,'c_track_momentum_res'+self.halftag,10,10,690,490)
+        c_track_momentum_res = TCanvas('c_track_momentum_res'+self.halftag,'c_track_momentum_res'+self.halftag,10,10,plotter.canWx_wide,490)
         c_track_momentum_res.Divide(2,2)
         c_track_momentum_res.cd(1)
         self.h_p_truth_res.Fit('gaus','Q')
@@ -430,7 +434,7 @@ class plotter:
             plotutils.myText(0.6,0.7,'#sigma=%.3f'%self.h_qOverP_truth_res_gbl.GetFunction('gaus').GetParameter(2),0.05,1)
         
         
-        c_track_momentum_res_vs_p = TCanvas('c_track_momentum_res_vs_p'+self.halftag,'c_track_momentum_res_vs_p'+self.halftag,10,10,690,490)
+        c_track_momentum_res_vs_p = TCanvas('c_track_momentum_res_vs_p'+self.halftag,'c_track_momentum_res_vs_p'+self.halftag,10,10,plotter.canWx_wide,490)
         c_track_momentum_res_vs_p.Divide(2,2)
         c_track_momentum_res_vs_p.cd(1)
         self.h_p_truth_res_vs_p.Draw('colz')
@@ -518,7 +522,7 @@ class plotter:
         
         
         
-        c_vtx_corr = TCanvas('c_vtx_corr'+self.halftag,'c_vtx_corr'+self.halftag,10,10,690,490)
+        c_vtx_corr = TCanvas('c_vtx_corr'+self.halftag,'c_vtx_corr'+self.halftag,10,10,plotter.canWx_wide,490)
         c_vtx_corr.Divide(2,2)
         c_vtx_corr.cd(1)
         self.h_vtx_xT_corr.Draw()
@@ -530,7 +534,7 @@ class plotter:
         self.h_z0_corr.Draw()
 
         
-        c_impactParameters_corr = TCanvas('c_impactParameters_corr'+self.halftag,'c_impactParameters_corr'+self.halftag,10,10,690,490)
+        c_impactParameters_corr = TCanvas('c_impactParameters_corr'+self.halftag,'c_impactParameters_corr'+self.halftag,10,10,plotter.canWx_wide,490)
         c_impactParameters_corr.Divide(2,2)
         c_impactParameters_corr.cd(1)
         self.h_d0_initial.Fit('gaus','Q')
@@ -566,7 +570,7 @@ class plotter:
             plotutils.myText(0.6,0.7,'#sigma=?',0.05,1)                                                
         
         
-        c_perPar_res = TCanvas('c_perPar_res_initial'+self.halftag,'c_perPar_res_initial'+self.halftag,10,10,690*2,390)
+        c_perPar_res = TCanvas('c_perPar_res_initial'+self.halftag,'c_perPar_res_initial'+self.halftag,10,10,plotter.canWx_wide,390)
         c_perPar_res.Divide(5,1)
         c_perPar_res.cd(1)
         self.h_perPar_res_initial_d0.Draw()
@@ -581,7 +585,7 @@ class plotter:
         
         
         if self.doDetailed:
-            c_measMsCov = TCanvas('c_measMsCov'+self.halftag,'c_measMsCov'+self.halftag,10,10,690*2,490)
+            c_measMsCov = TCanvas('c_measMsCov'+self.halftag,'c_measMsCov'+self.halftag,10,10,plotter.canWx_wide,490)
             c_measMsCov.Divide(2,1)
             c_measMsCov.cd(1)
             self.h_measMsCov.SetStats(False)
@@ -597,7 +601,7 @@ class plotter:
         
         
         if self.doDetailed:
-            c_xT_corr_label = TCanvas('c_xT_corr_label'+self.halftag,'c_xT_corr_label'+self.halftag,10,10,690*2,390)
+            c_xT_corr_label = TCanvas('c_xT_corr_label'+self.halftag,'c_xT_corr_label'+self.halftag,10,10,plotter.canWx_wide,390)
             c_xT_corr_label.Divide(2,1)
             c_xT_corr_label.cd(1)
             self.h_xT_corr_prf = self.h_xT_corr.ProfileX()
@@ -618,7 +622,7 @@ class plotter:
             
             if(save): c_xT_corr_label.SaveAs('xT_corr_label%s.%s'%(self.getTag(),self.picExt),self.picExt)
             
-            c_yT_corr_label = TCanvas('c_yT_corr_label'+self.halftag,'c_yT_corr_label'+self.halftag,10,10,690*2,390)
+            c_yT_corr_label = TCanvas('c_yT_corr_label'+self.halftag,'c_yT_corr_label'+self.halftag,10,10,plotter.canWx_wide,390)
             c_yT_corr_label.Divide(2,1)
             c_yT_corr_label.cd(1)
             self.h_yT_corr.SetStats(False)
@@ -640,7 +644,7 @@ class plotter:
             if(save): c_yT_corr_label.SaveAs('yT_corr_label%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
-        c_clPar_initial = TCanvas('c_clPar_initial'+self.halftag,'c_clPar_initial'+self.halftag,10,10,690*2,390)
+        c_clPar_initial = TCanvas('c_clPar_initial'+self.halftag,'c_clPar_initial'+self.halftag,10,10,plotter.canWx_wide,390)
         c_clPar_initial.Divide(5,1)
         c_clPar_initial.cd(1)
         self.h_clPar_initial_xT.Draw()
@@ -654,7 +658,7 @@ class plotter:
         self.h_clPar_initial_phi.Draw()
         
         
-        c_clParGBL_res = TCanvas('c_clParGBL_res'+self.halftag,'c_clParGBL_res'+self.halftag,10,10,690*2,390)
+        c_clParGBL_res = TCanvas('c_clParGBL_res'+self.halftag,'c_clParGBL_res'+self.halftag,10,10,plotter.canWx_wide,390)
         c_clParGBL_res.Divide(5,1)
         c_clParGBL_res.cd(1)
         self.h_clParGBL_res_xT.Draw()
@@ -669,7 +673,7 @@ class plotter:
         
         
         
-        c_clParGBL_pull = TCanvas('c_clParGBL_pull'+self.halftag,'c_clParGBL_pull'+self.halftag,10,10,690*2,390)
+        c_clParGBL_pull = TCanvas('c_clParGBL_pull'+self.halftag,'c_clParGBL_pull'+self.halftag,10,10,plotter.canWx_wide,390)
         c_clParGBL_pull.Divide(5,1)
         c_clParGBL_pull.cd(1)
         self.h_clParGBL_pull_xT.Draw()
@@ -685,7 +689,7 @@ class plotter:
         
         
         if self.doDetailed:
-            c_res_example = TCanvas('c_res_example'+self.halftag,'c_res_example'+self.halftag,10,10,690*2,490)
+            c_res_example = TCanvas('c_res_example'+self.halftag,'c_res_example'+self.halftag,10,10,plotter.canWx_wide,490)
             leg_res_example = TLegend(0.12,0.6,0.27,0.9)
             c_res_example.cd(1)
             self.gr_ures_truth.SetTitle('Example track fit;Path length (mm);Residual in measured direction (mm)')
@@ -719,13 +723,13 @@ class plotter:
             if(save): c_res_example.SaveAs('res_example%s.%s'%(self.getTag(),self.picExt),self.picExt)
         
         
-        c_res_initial_sensor = TCanvas('c_res_initial_sensor'+self.halftag,'c_res_initial_sensor'+self.halftag,10,10,690,390*2)
+        c_res_initial_sensor = TCanvas('c_res_initial_sensor'+self.halftag,'c_res_initial_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_initial_sensor.Divide(self.nSensorRows,self.nSensorCols)
-        c_res_initial_sensor_mean = TCanvas('c_res_initial_sensor_mean'+self.halftag,'c_res_initial_sensor_mean'+self.halftag,10,10,690*2,390*2)
+        c_res_initial_sensor_mean = TCanvas('c_res_initial_sensor_mean'+self.halftag,'c_res_initial_sensor_mean'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_initial_sensor_mean.SetBottomMargin(0.45)
         gr_res_initial_sensor_mean = TGraphErrors()
         gr_res_initial_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
-        c_res_initial_sensor_rms = TCanvas('c_res_initial_sensor_rms'+self.halftag,'c_res_initial_sensor_rms'+self.halftag,10,10,690*2,390*2)
+        c_res_initial_sensor_rms = TCanvas('c_res_initial_sensor_rms'+self.halftag,'c_res_initial_sensor_rms'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_initial_sensor_rms.SetBottomMargin(0.45)
         gr_res_initial_sensor_rms = TGraphErrors()
         gr_res_initial_sensor_rms.SetTitle(';Sensor;u residual (mm)')        
@@ -755,13 +759,13 @@ class plotter:
         
         
         
-        c_res_gbl_sensor = TCanvas('c_res_gbl_sensor'+self.halftag,'c_res_gbl_sensor'+self.halftag,10,10,690,390*2)
+        c_res_gbl_sensor = TCanvas('c_res_gbl_sensor'+self.halftag,'c_res_gbl_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_gbl_sensor.Divide(self.nSensorRows,self.nSensorCols)
-        c_res_gbl_sensor_mean = TCanvas('c_res_gbl_sensor_mean'+self.halftag,'c_res_gbl_sensor_mean'+self.halftag,10,10,690*2,390*2)
+        c_res_gbl_sensor_mean = TCanvas('c_res_gbl_sensor_mean'+self.halftag,'c_res_gbl_sensor_mean'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_gbl_sensor_mean.SetBottomMargin(0.45)
         gr_res_gbl_sensor_mean = TGraphErrors()
         gr_res_gbl_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
-        c_res_gbl_sensor_rms = TCanvas('c_res_gbl_sensor_rms'+self.halftag,'c_res_gbl_sensor_rms'+self.halftag,10,10,690*2,390*2)
+        c_res_gbl_sensor_rms = TCanvas('c_res_gbl_sensor_rms'+self.halftag,'c_res_gbl_sensor_rms'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_gbl_sensor_rms.SetBottomMargin(0.45)
         gr_res_gbl_sensor_rms = TGraphErrors()
         gr_res_gbl_sensor_rms.SetTitle(';Sensor;u residual (mm)')        
@@ -792,7 +796,7 @@ class plotter:
 
 
 
-        c_res_diff_gbl_seed_sensor = TCanvas('c_res_diff_gbl_seed_sensor'+self.halftag,'c_res_diff_gbl_seed_sensor'+self.halftag,10,10,690,390*2)
+        c_res_diff_gbl_seed_sensor = TCanvas('c_res_diff_gbl_seed_sensor'+self.halftag,'c_res_diff_gbl_seed_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_diff_gbl_seed_sensor.Divide(self.nSensorRows,self.nSensorCols)
         i = 1
         ms = sorted(self.h_map_res_diff_gbl_seed_layer,key=getLayer)
@@ -819,7 +823,7 @@ class plotter:
         
         
 
-        c_xTcorr_sensor = TCanvas('c_xTcorr_sensor'+self.halftag,'c_xTcorr_sensor'+self.halftag,10,10,690,390*2)
+        c_xTcorr_sensor = TCanvas('c_xTcorr_sensor'+self.halftag,'c_xTcorr_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_xTcorr_sensor.Divide(self.nSensorRows,self.nSensorCols)
         ms = sorted(self.h_map_xTcorr_layer,key=getLayer)
         idToSensor = {}
@@ -832,7 +836,7 @@ class plotter:
             h.Draw()
 
 
-        c_yTcorr_sensor = TCanvas('c_yTcorr_sensor'+self.halftag,'c_yTcorr_sensor'+self.halftag,10,10,690,390*2)
+        c_yTcorr_sensor = TCanvas('c_yTcorr_sensor'+self.halftag,'c_yTcorr_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_yTcorr_sensor.Divide(self.nSensorRows,self.nSensorCols)
         ms = sorted(self.h_map_yTcorr_layer,key=getLayer)
         idToSensor = {}
@@ -846,7 +850,7 @@ class plotter:
 
 
         
-        c_res_gbl_vs_vpred_sensor = TCanvas('c_res_gbl_vs_vpred_sensor'+self.halftag,'c_res_gbl_vs_vpred_sensor'+self.halftag,10,10,690,int(390*2))
+        c_res_gbl_vs_vpred_sensor = TCanvas('c_res_gbl_vs_vpred_sensor'+self.halftag,'c_res_gbl_vs_vpred_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_gbl_vs_vpred_sensor.Divide(self.nSensorRows,self.nSensorCols)
         ms = sorted(self.h_map_res_gbl_vs_vpred_layer,key=getLayer)
         for sensor in ms:
@@ -855,7 +859,7 @@ class plotter:
             h = self.h_map_res_gbl_vs_vpred_layer[sensor] 
             h.Draw('colz')
         
-        c_res_gbl_vs_u_sensor = TCanvas('c_res_gbl_vs_u_sensor'+self.halftag,'c_res_gbl_vs_u_sensor'+self.halftag,10,10,690,int(390*2))
+        c_res_gbl_vs_u_sensor = TCanvas('c_res_gbl_vs_u_sensor'+self.halftag,'c_res_gbl_vs_u_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_gbl_vs_u_sensor.Divide(self.nSensorRows,self.nSensorCols)                                     
         i = 1
         ms = sorted(self.h_map_res_gbl_vs_u_layer,key=getLayer)
@@ -865,7 +869,7 @@ class plotter:
             h = self.h_map_res_gbl_vs_u_layer[sensor]
             h.Draw('colz')
         
-        c_res_gbl_vs_vpred_sensor_prf = TCanvas('c_res_gbl_vs_vpred_sensor_prf'+self.halftag,'c_res_gbl_vs_vpred_sensor_prf'+self.halftag,10,10,690,int(390*2))
+        c_res_gbl_vs_vpred_sensor_prf = TCanvas('c_res_gbl_vs_vpred_sensor_prf'+self.halftag,'c_res_gbl_vs_vpred_sensor_prf'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_gbl_vs_vpred_sensor_prf.Divide(self.nSensorRows,self.nSensorCols)
         i = 1
         ms = sorted(self.h_map_res_gbl_vs_vpred_layer,key=getLayer)
@@ -888,7 +892,7 @@ class plotter:
                 plotutils.myText(0.7,0.1,"a1=%.2e a2=%.2e"% (fnc.GetParameter(0),fnc.GetParameter(1)),0.25,2)
         
 
-        c_res_gbl_vs_u_sensor_prf = TCanvas('c_res_gbl_vs_u_sensor_prf'+self.halftag,'c_res_gbl_vs_u_sensor_prf'+self.halftag,10,10,690,int(390*2))
+        c_res_gbl_vs_u_sensor_prf = TCanvas('c_res_gbl_vs_u_sensor_prf'+self.halftag,'c_res_gbl_vs_u_sensor_prf'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_gbl_vs_u_sensor_prf.Divide(self.nSensorRows,self.nSensorCols)
         i = 1
         ms = sorted(self.h_map_res_gbl_vs_u_layer,key=getLayer)
@@ -910,13 +914,13 @@ class plotter:
                 plotutils.myText(0.7,0.1,"a1=%.2e a2=%.2e"% (fnc.GetParameter(0),fnc.GetParameter(1)),0.25,2)
 
 
-        c_corr_lambda_sensor = TCanvas('c_corr_lambda_sensor'+self.halftag,'c_corr_lambda_sensor'+self.halftag,10,10,690,int(390*2))
+        c_corr_lambda_sensor = TCanvas('c_corr_lambda_sensor'+self.halftag,'c_corr_lambda_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corr_lambda_sensor.Divide(self.nSensorRows,self.nSensorCols)
-        c_corr_lambda_sensor_mean = TCanvas('c_corr_lambda_sensor_mean'+self.halftag,'c_corr_lambda_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
+        c_corr_lambda_sensor_mean = TCanvas('c_corr_lambda_sensor_mean'+self.halftag,'c_corr_lambda_sensor_mean'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corr_lambda_sensor_mean.SetBottomMargin(0.45)
         gr_corr_lambda_sensor_mean = TGraphErrors()
         gr_corr_lambda_sensor_mean.SetTitle(';Sensor;#lambda correction mean')        
-        c_corr_lambda_sensor_rms = TCanvas('c_corr_lambda_sensor_rms'+self.halftag,'c_corr_lambda_sensor_rms'+self.halftag,10,10,690*2,int(390*2))
+        c_corr_lambda_sensor_rms = TCanvas('c_corr_lambda_sensor_rms'+self.halftag,'c_corr_lambda_sensor_rms'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corr_lambda_sensor_rms.SetBottomMargin(0.45)
         gr_corr_lambda_sensor_rms = TGraphErrors()
         gr_corr_lambda_sensor_rms.SetTitle(';Sensor;#lambda correction width')        
@@ -954,13 +958,13 @@ class plotter:
         plotutils.setGraphXLabels(gr_corr_lambda_sensor_rms,idToSensor)
 
 
-        c_corrdiff_lambda_sensor = TCanvas('c_corrdiff_lambda_sensor'+self.halftag,'c_corrdiff_lambda_sensor'+self.halftag,10,10,690,int(390*2))
+        c_corrdiff_lambda_sensor = TCanvas('c_corrdiff_lambda_sensor'+self.halftag,'c_corrdiff_lambda_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corrdiff_lambda_sensor.Divide(self.nSensorRows,self.nSensorCols)
-        c_corrdiff_lambda_sensor_mean = TCanvas('c_corrdiff_lambda_sensor_mean'+self.halftag,'c_corrdiff_lambda_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
+        c_corrdiff_lambda_sensor_mean = TCanvas('c_corrdiff_lambda_sensor_mean'+self.halftag,'c_corrdiff_lambda_sensor_mean'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corrdiff_lambda_sensor_mean.SetBottomMargin(0.45)
         gr_corrdiff_lambda_sensor_mean = TGraphErrors()
         gr_corrdiff_lambda_sensor_mean.SetTitle(';Sensor;#lambda correction mean')        
-        c_corrdiff_lambda_sensor_rms = TCanvas('c_corrdiff_lambda_sensor_rms'+self.halftag,'c_corrdiff_lambda_sensor_rms'+self.halftag,10,10,690*2,int(390*2))
+        c_corrdiff_lambda_sensor_rms = TCanvas('c_corrdiff_lambda_sensor_rms'+self.halftag,'c_corrdiff_lambda_sensor_rms'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corrdiff_lambda_sensor_rms.SetBottomMargin(0.45)
         gr_corrdiff_lambda_sensor_rms = TGraphErrors()
         gr_corrdiff_lambda_sensor_rms.SetTitle(';Sensor;#lambda correction width')        
@@ -999,13 +1003,13 @@ class plotter:
 
 
 
-        c_corr_phi_sensor = TCanvas('c_corr_phi_sensor'+self.halftag,'c_corr_phi_sensor'+self.halftag,10,10,690,int(390*2))
+        c_corr_phi_sensor = TCanvas('c_corr_phi_sensor'+self.halftag,'c_corr_phi_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corr_phi_sensor.Divide(self.nSensorRows,self.nSensorCols)
-        c_corr_phi_sensor_mean = TCanvas('c_corr_phi_sensor_mean'+self.halftag,'c_corr_phi_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
+        c_corr_phi_sensor_mean = TCanvas('c_corr_phi_sensor_mean'+self.halftag,'c_corr_phi_sensor_mean'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corr_phi_sensor_mean.SetBottomMargin(0.45)
         gr_corr_phi_sensor_mean = TGraphErrors()
         gr_corr_phi_sensor_mean.SetTitle(';Sensor;#phi correction mean')        
-        c_corr_phi_sensor_rms = TCanvas('c_corr_phi_sensor_rms'+self.halftag,'c_corr_phi_sensor_rms'+self.halftag,10,10,690*2,int(390*2))
+        c_corr_phi_sensor_rms = TCanvas('c_corr_phi_sensor_rms'+self.halftag,'c_corr_phi_sensor_rms'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corr_phi_sensor_rms.SetBottomMargin(0.45)
         gr_corr_phi_sensor_rms = TGraphErrors()
         gr_corr_phi_sensor_rms.SetTitle(';Sensor;#phi correction width')        
@@ -1043,13 +1047,13 @@ class plotter:
         plotutils.setGraphXLabels(gr_corr_phi_sensor_rms,idToSensor)
 
 
-        c_corrdiff_phi_sensor = TCanvas('c_corrdiff_phi_sensor'+self.halftag,'c_corrdiff_phi_sensor'+self.halftag,10,10,690,int(390*2))
+        c_corrdiff_phi_sensor = TCanvas('c_corrdiff_phi_sensor'+self.halftag,'c_corrdiff_phi_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corrdiff_phi_sensor.Divide(self.nSensorRows,self.nSensorCols)
-        c_corrdiff_phi_sensor_mean = TCanvas('c_corrdiff_phi_sensor_mean'+self.halftag,'c_corrdiff_phi_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
+        c_corrdiff_phi_sensor_mean = TCanvas('c_corrdiff_phi_sensor_mean'+self.halftag,'c_corrdiff_phi_sensor_mean'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corrdiff_phi_sensor_mean.SetBottomMargin(0.45)
         gr_corrdiff_phi_sensor_mean = TGraphErrors()
         gr_corrdiff_phi_sensor_mean.SetTitle(';Sensor;#phi correction mean')        
-        c_corrdiff_phi_sensor_rms = TCanvas('c_corrdiff_phi_sensor_rms'+self.halftag,'c_corrdiff_phi_sensor_rms'+self.halftag,10,10,690*2,int(390*2))
+        c_corrdiff_phi_sensor_rms = TCanvas('c_corrdiff_phi_sensor_rms'+self.halftag,'c_corrdiff_phi_sensor_rms'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_corrdiff_phi_sensor_rms.SetBottomMargin(0.45)
         gr_corrdiff_phi_sensor_rms = TGraphErrors()
         gr_corrdiff_phi_sensor_rms.SetTitle(';Sensor;#phi correction width')        
@@ -1087,9 +1091,9 @@ class plotter:
 
 
 
-        c_res_truth_sensor = TCanvas('c_res_truth_sensor'+self.halftag,'c_res_truth_sensor'+self.halftag,10,10,690*2,int(390*2))
+        c_res_truth_sensor = TCanvas('c_res_truth_sensor'+self.halftag,'c_res_truth_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_truth_sensor.Divide(self.nSensorRows,self.nSensorCols)
-        c_res_truth_sensor_mean = TCanvas('c_res_truth_sensor_mean'+self.halftag,'c_res_truth_sensor_mean'+self.halftag,10,10,690*2,int(390*2))
+        c_res_truth_sensor_mean = TCanvas('c_res_truth_sensor_mean'+self.halftag,'c_res_truth_sensor_mean'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         gr_res_truth_sensor_mean = TGraphErrors()
         gr_res_truth_sensor_mean.SetTitle(';Sensor;u residual (mm)')        
         i = 1
@@ -1151,7 +1155,7 @@ class plotter:
 
 
 
-        c_pred_sensor = TCanvas('c_pred_sensor'+self.halftag,'c_pred_sensor'+self.halftag,10,10,690,int(390*2))
+        c_pred_sensor = TCanvas('c_pred_sensor'+self.halftag,'c_pred_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_pred_sensor.Divide(self.nSensorRows,self.nSensorCols)
         ms = sorted(self.h_map_pred_layer,key=getLayer)
         for sensor in ms:
@@ -1160,7 +1164,7 @@ class plotter:
             h = self.h_map_pred_layer[sensor] 
             h.Draw("colz")
 
-        c_iso_sensor = TCanvas('c_iso_sensor'+self.halftag,'c_iso_sensor'+self.halftag,10,10,690,int(390*2))
+        c_iso_sensor = TCanvas('c_iso_sensor'+self.halftag,'c_iso_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         print 'WHAT: ', self.nSensorRows, ' ', self.nSensorCols
         c_iso_sensor.Divide(self.nSensorRows,self.nSensorCols)
         ms = sorted(self.h_map_iso_layer,key=getLayer)
@@ -1173,7 +1177,7 @@ class plotter:
 
 
         if(save):
-            c_all = TCanvas('c_all'+self.halftag,'c_all'+self.halftag,10,10,690*2,int(390*2))
+            c_all = TCanvas('c_all'+self.halftag,'c_all'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
             c_all.Print('gbltst-hps-plots%s.ps['%self.getTag())
             c_res_initial_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
