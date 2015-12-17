@@ -380,12 +380,12 @@ class plotter:
         self.h_p.SetFillStyle(1001);
         self.h_p.SetFillColor(4);
         self.h_p.SetLineColor(1);
-        self.h_p.Fit("gaus","R","",0.9,1.2)        
+        self.h_p.Fit("gaus","RQ","",0.9,1.2)        
         self.h_p_gbl.SetFillStyle(3005);
         self.h_p_gbl.SetFillColor(2);
         self.h_p_gbl.SetLineColor(2);
         self.h_p_gbl.Draw("")
-        self.h_p_gbl.Fit("gaus","R","",0.9,1.2)        
+        self.h_p_gbl.Fit("gaus","RQ","",0.9,1.2)        
         self.h_p.Draw("same")
         self.h_p_gbl.Draw("same")
         self.h_p_truth.SetLineStyle(3)
@@ -449,7 +449,7 @@ class plotter:
             hprj = self.h_p_truth_res_vs_p.ProjectionY('%s_%d'%(self.h_p_truth_res_vs_p.GetName(),b),b,b,"")
             if hprj.Integral() > 20: 
                 x = self.h_p_truth_res_vs_p.GetXaxis().GetBinCenter(b)
-                hprj.Fit('gaus')
+                hprj.Fit('gaus','Q')
                 y = hprj.GetFunction('gaus').GetParameter(2)
                 y /= x
                 dy = hprj.GetFunction('gaus').GetParError(2)
@@ -464,7 +464,7 @@ class plotter:
             hprj = self.h_p_truth_res_gbl_vs_p.ProjectionY('%s_%d'%(self.h_p_truth_res_gbl_vs_p.GetName(),b),b,b,"")
             if hprj.Integral() > 20: 
                 x = self.h_p_truth_res_gbl_vs_p.GetXaxis().GetBinCenter(b)
-                hprj.Fit('gaus')
+                hprj.Fit('gaus','Q')
                 y = hprj.GetFunction('gaus').GetParameter(2)
                 y /= x
                 dy = hprj.GetFunction('gaus').GetParError(2)
@@ -880,11 +880,11 @@ class plotter:
             profile = h.ProfileX();
             fnc = None
             if h.GetEntries() > 50.0:
-                profile.Fit('pol1','0')
+                profile.Fit('pol1','0Q')
                 fnc = profile.GetFunction('pol1')
             profile.Draw()
             if fnc != None:
-                print 'Fitted pol1 to ', profile.GetName(), 'slope ', fnc.GetParameter(0), ' offset ', fnc.GetParameter(1)
+                #print 'Fitted pol1 to ', profile.GetName(), 'slope ', fnc.GetParameter(0), ' offset ', fnc.GetParameter(1)
                 fnc.SetLineWidth(1)
                 fnc.SetLineStyle(3)
                 fnc.Draw('same,L')
@@ -902,11 +902,11 @@ class plotter:
             h = self.h_map_res_gbl_vs_u_layer[sensor]
             profile = h.ProfileX()
             if h.GetEntries() > 50.0:
-                profile.Fit('pol1','0')
+                profile.Fit('pol1','0Q')
                 fnc = profile.GetFunction('pol1')
             profile.Draw()
             if fnc != None:
-                print 'Fitted pol1 to ', profile.GetName(), 'slope ', fnc.GetParameter(0), ' offset ', fnc.GetParameter(1)
+                #print 'Fitted pol1 to ', profile.GetName(), 'slope ', fnc.GetParameter(0), ' offset ', fnc.GetParameter(1)
                 fnc.SetLineWidth(1)
                 fnc.SetLineStyle(3)
                 fnc.Draw('same')
@@ -1226,6 +1226,7 @@ class plotter:
             c_clParGBL_pull.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_all.Print('gbltst-hps-plots%s.ps]'%self.getTag())
             subprocess.call('ps2pdf gbltst-hps-plots%s.ps'%self.getTag(),shell=True)
+            subprocess.call('rm gbltst-hps-plots%s.ps'%self.getTag(),shell=True)
 
             #c_res_initial_sensor.SaveAs('gbltst-hps-plots%s-%s.png'%(self.getTag(),c_res_initial_sensor.GetName()))
             #c_res_initial_sensor2.SaveAs('gbltst-hps-plots%s-%s.png'%(self.getTag(),c_res_initial_sensor2.GetName()))
