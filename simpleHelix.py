@@ -271,6 +271,7 @@ class SimpleHelix(object):
   def moveTo(self, newRefPoint):
     dx = self.__refPoint[0] - newRefPoint[0]
     dy = self.__refPoint[1] - newRefPoint[1]
+    print 'SimpleHelix: moveTo: dx ', dx, ' dy ', dy, ' ds ',  self.getArcLengthXY(newRefPoint)
     rho = self.__rinv
     phi = self.__phi0
     dca = self.__dca

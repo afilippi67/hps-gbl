@@ -146,8 +146,8 @@ def plotRotations(t_file):
 
     print ' got ', len(names), ' sensor names'
 
-    #hname = 'h_res_gbl_vs_u_'
-    hname = 'h_res_gbl_vs_vpred_'
+    hname = 'h_res_gbl_vs_u_'
+    #hname = 'h_res_gbl_vs_vpred_'
 
     
     c = TCanvas('c','c',10,10,700,500)
@@ -296,9 +296,9 @@ def main(args):
         #plotResiduals(f,'h_res','bot')
         #plotResiduals(f,'h_res_gbl','top')
         #plotResiduals(f,'h_res_gbl','bot')
-        #plotRotations(f)
-        plotGBLvsSeedResiduals(f,'top')
-        plotGBLvsSeedResiduals(f,'bot')
+        plotRotations(f)
+        #plotGBLvsSeedResiduals(f,'top')
+        #plotGBLvsSeedResiduals(f,'bot')
         ans = raw_input('continue?')
         f.Close()
 

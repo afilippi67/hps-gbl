@@ -132,6 +132,7 @@ class plotter:
         self.h_map_res_layer = {}
         self.h_map_res_gbl_layer = {} 
         self.h_map_res_diff_gbl_seed_layer = {} 
+        self.h_map_res_diff_wrong_gbl_seed_layer = {} 
         self.h_map_xTcorr_layer = {}
         self.h_map_yTcorr_layer = {}
         self.h_map_res_gbl_vs_vpred_layer = {}
@@ -224,6 +225,16 @@ class plotter:
                 xmin = -1.*xmax
                 h = TH1F('h_res_diff_gbl_seed_%s%s'%(deName,self.halftag),'%s;|GBL residual| - |seed residual| (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_diff_gbl_seed_layer[deName] = h
+            h.Fill(val)
+        elif type=="res_diff_wrong_gbl_seed":
+            if deName in self.h_map_res_diff_wrong_gbl_seed_layer:
+                h = self.h_map_res_diff_wrong_gbl_seed_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 1.0
+                xmin = -1.*xmax
+                h = TH1F('h_res_diff_wrong_gbl_seed_%s%s'%(deName,self.halftag),'%s;|GBL residual| - |seed residual| (mm);Entries'%deName,50,xmin,xmax)
+                self.h_map_res_diff_wrong_gbl_seed_layer[deName] = h
             h.Fill(val)
         elif type=="xTcorr":
             if deName in self.h_map_xTcorr_layer:
@@ -805,9 +816,13 @@ class plotter:
             i = getCanvasIdxTwoCols(sensor, self.beamspot)
             c_res_diff_gbl_seed_sensor.cd(i)
             h = self.h_map_res_diff_gbl_seed_layer[sensor] 
-            h.Draw()
+            hw = self.h_map_res_diff_wrong_gbl_seed_layer[sensor]
+            hw.SetLineColor(2)
+            hw.Draw()
+            h.Draw('same')
             
             i=i+1
+
         
         
 

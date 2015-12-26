@@ -15,7 +15,6 @@ class HpsGblException(Exception):
         Exception.__init__(self, msg)
 
 
-
 def chi2Prob(chi2,ndf):
     return TMath.Prob(chi2,ndf)
 

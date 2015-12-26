@@ -45,16 +45,19 @@ class Track:
         self.perCov = []
         self.chi2Initial = 0.
         self.ndfInitial = 0
+
     def isTop(self): 
         if copysign(1, self.strips[len(self.strips)-1].sinLambda) > 0:
             return True
         return False
+
     def pt(self,bfac):
         if self.curvature() == 0.:
             print 'curvature is zero? ', self.curvature(), ' ', self.perPar
             sys.exit(1)
             #print 'pt: bfac ', bfac, ' C ', self.curvature(), ' -> ', (bfac * 1.0/self.curvature()), ' abs(pt) ', TMath.Abs(bfac * 1.0/self.curvature()), ' ', abs(bfac * 1.0/self.curvature())
         return abs(bfac * 1.0/self.curvature())
+
     def p(self,bfac):
         p1 = self.pt(bfac) / sin(self.theta())
         if p1 == 0.0:
@@ -65,11 +68,13 @@ class Track:
             print 'Warning p1=%f and p2=%f!!' % ( p1, p2)
             #exit(1)
         return p1
+
     def pt_truth(self,bfac):
         if self.curvature_truth() == 0.:
             print 'curvature_truth is zero? ', self.curvature_truth(), ' ', self.perParTruth
             sys.exit(1)
         return abs(bfac * 1.0/self.curvature_truth())
+
     def p_truth(self,bfac):
         p1 = self.pt_truth(bfac) / sin(self.theta_truth())
         #cross-check
@@ -78,18 +83,25 @@ class Track:
             print 'Warning truth p1=%f and p2=%f!!' % (p1,p2)
             #exit(1)
         return p1
+
     def d0(self):
         return self.perPar[3]
+
     def d0_truth(self):
         return self.perParTruth[3]
+
     def z0(self):
         return self.perPar[4]
+
     def z0_truth(self):
         return self.perParTruth[4]
+
     def phi0(self):
         return self.perPar[2]
+
     def phi0_truth(self):
         return self.perParTruth[2]
+
     def q(self):
         if copysign(1,self.perPar[0])>0:
             return 1
@@ -102,20 +114,28 @@ class Track:
             return -1
     def theta(self):
         return self.perPar[1]
+
     def theta_truth(self):
         return self.perParTruth[1]
+
     def slope(self):
         return tan(pi/2.0 - self.theta())
+
     def slope_truth(self):
         return tan(pi/2.0 - self.theta_truth())
+
     def qOverP(self,bfac):
         return float(self.q())/self.p(bfac)
+
     def qOverP_truth(self,bfac):
         return float(self.q_truth())/self.p_truth(bfac)
+
     def curvature(self):
         return self.perPar[0]
+
     def curvature_truth(self):
         return self.perParTruth[0]
+
     def prjClToPer(self,xT,yT):
         #print 'project UVT coordinates to IJK coordinates'
         vec_in = np.array([xT,yT,0.])
@@ -123,6 +143,7 @@ class Track:
         vec = np.dot(prj,vec_in)
         #print 'UVT coordinates ', vec_in, '\n perToClPrj \n', self.perToClPrj,'\n clToPerPrj \n', prj, ' \n to IJK (0,d0,z0)', vec
         return vec
+
 
 class HPSEvent:
     """Simple event model."""
@@ -137,6 +158,8 @@ class HPSEvent:
         self.tracks.append(track)
 
 class GBLResults:
+    '''Class to encapsulate the GBL tracjectory and the seed track.'''
+
     def __init__(self,track):
         self.locPar = {}
         self.locCov = {}
@@ -146,31 +169,42 @@ class GBLResults:
         self.idx_phi = 2
         self.idx_xT = 3
         self.idx_yT = 4
+
     def addPoint(self,label,locPar,locCov):
         self.locPar[label] = locPar
         self.locCov[label] = locCov
+
     def curvCorr(self):
         label=1 # same correction for all points
         corr = self.locPar[label][self.idx_qoverp]
         return corr
+
     def p_gbl(self,bfac):
         return self.track.q()/self.qOverP_gbl(bfac)
+
     def qOverP_gbl(self,bfac):
         return self.track.qOverP(bfac) + self.curvCorr()
+
     def xTCorr(self,label):
             return self.locPar[label][self.idx_xT]
+
     def yTCorr(self,label):
             return self.locPar[label][self.idx_yT]
+
     def d0Corr(self,label):
         #correct for different sign convention of d0 in curvilinear frame
         corr = -1.0 * self.track.prjClToPer(self.xTCorr(label),self.yTCorr(label))[1]
         return corr
+
     def z0Corr(self,label):
         return self.track.prjClToPer(self.xTCorr(label),self.yTCorr(label))[2]
+
     def d0_gbl(self,label):
         return self.track.d0()+self.d0Corr(label) 
+
     def z0_gbl(self,label):
         return self.track.z0()+self.z0Corr(label)
+
     def printVertexCorr(self):
         print "qOverPCorr " + str(self.locPar[1][self.idx_qoverp]) + " xTCorr " + str(self.locPar[1][self.idx_xT]) + " yTCorr " +  str(self.locPar[1][self.idx_yT])  + " xtPrimeCorr " +  str(self.locPar[1][1])  + " yTPrimeCorr " +  str(self.locPar[1][2])
 
@@ -209,7 +243,7 @@ class GBLResults:
         print "\n==========="
 
     def getPerParCorr(self,label,bfac):
-        '''Calculate new perigee frame track parameters'''
+        '''Calculate new perigee frame track parameters - THIS IS WRONG'''
 
         # corrections to in perigee frame
         corrPer = self.track.prjClToPer(self.xTCorr(label),self.yTCorr(label))
@@ -232,11 +266,75 @@ class GBLResults:
         phi0_gbl = self.track.phi0() + xTPrimeCorr - corrPer[0] * C_gbl
 
         return [ C_gbl, theta_gbl, phi0_gbl, self.d0_gbl(label), self.z0_gbl(label) ]
-        
-#def rotateGlToMeas(strip,vector):
-#    rotMat = np.array([strip.u, strip.v, strip.w])
-#    rotVector = np.dot(vector,rotMat)
-#    return rotVector
+
+    def getSlopeCorrection(self,label):
+        tmp_lambda_gbl = atan( self.track.slope() ) + self.locPar[label][self.idx_lambda]
+        return tan( tmp_lambda_gbl )  - self.track.slope()
+    
+    def getPerCorrections(self,label,bfac):
+        '''Calculate corrections in perigee frame'''
+
+        # corrections to in perigee frame
+        corrPer = self.track.prjClToPer(self.xTCorr(label),self.yTCorr(label))
+
+        # corrections to phi
+        xTPrimeCorr = self.locPar[label][self.idx_phi]
+
+        # corrections to lambda
+        yTPrimeCorr = self.locPar[label][self.idx_lambda]
+
+        #calculate new theta
+        #lambda_gbl = atan( self.track.slope() ) + yTPrimeCorr
+        #slope_gbl = tan( lambda_gbl )
+        slope_gbl = self.getSlopeCorrection(label) + self.track.slope()
+        theta_gbl = pi / 2.0 - atan( slope_gbl )
+
+        # correction to curvature
+        C_gbl = abs(bfac) * self.qOverP_gbl(bfac) / cos( atan(slope_gbl) )
+
+        # calculate new phi0
+        phi0_gbl = self.track.phi0() + xTPrimeCorr - corrPer[0] * C_gbl
+
+        # new parameters
+        pars = [ C_gbl, theta_gbl, phi0_gbl, self.d0_gbl(label), self.z0_gbl(label) ]
+
+        #print 'getPerCorrections: new perpars  ', np.array( pars )
+        #print 'getPerCorrections: old perpars  ', np.array( self.track.perPar )
+
+        # find the corrections from the difference compared to original parameters
+        parsdiff = np.array( pars ) - np.array( self.track.perPar ) 
+
+        #print 'getPerCorrections: diff perpars ', parsdiff
+
+        return parsdiff
+
+
+    
+    def getPerCorrectionsOther(self,label,bfac):
+        '''Calculate corrections in perigee frame'''
+        locPars = self.locPar[label]
+        la = atan( self.track.slope() )
+        cosLambda = cos( la )
+        sinLambda = sin( la )
+        rInv = self.track.curvature()
+        #print 'locPars ', locPars
+        #print 'cosLambda ', cosLambda, ' sinLambda ', sinLambda, ' rInv ', rInv
+        # transformation to perigee (-like) system
+        # Pelle: note flipped sign for dca
+        curv2per = np.zeros((5, 5))  
+        curv2per[0][0] = -bfac / cosLambda
+        curv2per[0][1] = sinLambda / cosLambda * rInv
+        curv2per[3][1] = 1. / (cosLambda * cosLambda)  
+        curv2per[1][2] = 1.  
+        curv2per[1][4] = sinLambda * rInv  
+        curv2per[2][3] = -1.  
+        curv2per[4][4] = 1. / cosLambda
+        aSolution = np.dot(curv2per, locPars)
+        #print 'curv2per ', curv2per
+        #print 'aSolution ', aSolution
+        aSolution[2] = -1. * aSolution[2]
+        #print 'aSolution dca fix ', np.array( [ aSolution ] )
+        return aSolution
 
 
 

@@ -2,7 +2,7 @@
 
 import sys, os, re
 import argparse
-from ROOT import TFile, TH1F, TF1, TCanvas, gPad, gDirectory, TGraph, TGraphErrors
+from ROOT import TFile, TH1F, TF1, TCanvas, gPad, gDirectory, TGraph, TGraphErrors, gROOT
 sys.path.append('pythonutils')
 import utils
 import compareRootHists 
@@ -15,6 +15,7 @@ def getArgs():
     parser.add_argument('--tag','-t',default='',help='Tag to output files.')
     parser.add_argument('--beamspot','-b',action='store_true',help='Beamspot is included.')
     parser.add_argument('--legend','-l',help='Legend')
+    parser.add_argument('--batch', action='store_true',help='ROOT batch mode.')
     args = parser.parse_args();
     print args
     return args
@@ -303,5 +304,7 @@ def main(args):
 if __name__ == '__main__':
 
     args = getArgs()
+
+    gROOT.SetBatch( args.batch )
 
     main(args)

@@ -10,6 +10,7 @@ gblpythonpath = os.getenv('GBL','../GeneralBrokenLines/python')
 sys.path.append(gblpythonpath)
 from gblfit import GblPoint, GblTrajectory
 import hps_plots
+import simpleHelix
 from ROOT import gROOT, gDirectory
 
 '''
@@ -21,10 +22,37 @@ Edited on Jun 20, 2013
 @author: kleinwrt, phansson
 '''
 
-#
+
 
 nametag = ''
  
+
+def getArgs():
+  parser = argparse.ArgumentParser(description='Run HPS GBL code')
+  parser.add_argument('file',help='Input file.')
+  parser.add_argument('--debug','-d',action='store_true',help='Debug output flag.')
+  parser.add_argument('--nevents',type=int,default=-1,help='Max events to process.')
+  parser.add_argument('--ntracks','-n',type=int,default=-1,help='Max tracks to process.')
+  parser.add_argument('--notop',action='store_true',help='Reject top tracks.')
+  parser.add_argument('--nobottom',action='store_true',help='Reject bottom tracks.')
+  parser.add_argument('--name',help='Name to add to results')
+  parser.add_argument('--mc','-m',action='store_true', help='Simulation input')
+  parser.add_argument('--save','-s',action='store_true',help='Save output')
+  parser.add_argument('--nopause',action='store_true',help='Require manual input to continue program.')
+  parser.add_argument('--noshow',action='store_true',help='Do not show plots.')
+  parser.add_argument('--useuncorrms',action='store_true',help='inflate MS errors instead of using scatterers')
+  parser.add_argument('--testrun',action='store_true',help='Test Run input')
+  parser.add_argument('--minStrips',type=int,default=0,help='Minimum number of strip clusters per track')
+  parser.add_argument('--beamspot',action='store_true',help='Beamspot included as hit')
+  parser.add_argument('--minP',type=float,help='Minimum track momentum in GeV/c')
+  parser.add_argument('--batch','-b',action='store_true',help='Run ROOT in batch mode.')
+  
+  args = parser.parse_args();
+  print args
+  return args
+
+
+
 def main(args):
   '''
   Read initial fit and points from  test file
@@ -526,17 +554,109 @@ def main(args):
 
           # plot residuals of the seed vs the corrected seed
           if nTry < 10:
+
+            print '========= START TRK RESIDUALS ======== '
+
+            # get the residual from the seed track perigee track parameters
             uResSeed = utils.getMeasurementResidualIterative(track.perPar,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
+
+            # get the GBL corrections to the perigee track parameters at this point
+            # NOTE: this is wrong!
             perParCorr = result.getPerParCorr(iLabel,bfac)
-            #print 'perPar     ', track.perPar
-            #print 'perParCorr ', perParCorr
+            print 'perPar     ', track.perPar
+            print 'perParCorr ', perParCorr
+
+            # get the residual from the *corrected* (see note above) seed track perigee track parameters
+            uResSeedCorrWrong = utils.getMeasurementResidualIterative(perParCorr,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
+            #print 'uResSeed     ', uResSeed, ' label ', iLabel, ' sensor ', strip.deName
+            #print 'uResSeedCorrWrong ', uResSeedCorrWrong, ' label ', iLabel, ' sensor ', strip.deName
+
+            # plot the difference in residuals b/w the corrected and uncorrected track
+            plot.fillSensorPlots("res_diff_wrong_gbl_seed", strip.deName, abs(uResSeedCorrWrong) - abs(uResSeed) )
+
+            print 'WRONG diff ', abs(uResSeedCorrWrong) - abs(uResSeed), ' uResSeedCorrWrong', uResSeedCorrWrong, ' uResSeed ', uResSeed
+
+            # This is the correct way of getting the corrected track parameters in perigee frame
+
+            # Create a SimpleHelix object from the original seed track parameters
+            # note that it uses slope instead of theta and difference ordering
+            # [C,phi0,dca,slope,z0]
+            helixSeed = simpleHelix.SimpleHelix([ track.perPar[0], track.perPar[2], track.perPar[3], math.tan(math.pi/2.0 - track.perPar[1]), track.perPar[4] ])
+
+            print 'helixSeed '
+            helixSeed.dump()
+
+            # change reference point to intersection of seed track with plane
+            refPointAtOrg = [ 0., 0. ]
+            refPointAtPlane = [ strip.tPos[0],strip.tPos[1] ]
+            print 'move helix to interception of seed track and plane which is at x,y ', refPointAtPlane, ' ( tPos ',strip.tPos,')'
+            helixSeedParsAtPoint = helixSeed.moveTo( refPointAtPlane )
+
+            helixSeedAtPoint = simpleHelix.SimpleHelix( helixSeedParsAtPoint, refPointAtPlane )
+            print 'helixSeedAtPoint at ', refPointAtPlane
+            helixSeedAtPoint.dump()
+            
+            # find the GBL corrections in perigee frame
+            print 'get corrections in perFrame'
+            perCorrections = result.getPerCorrections(iLabel, bfac)
+            print 'perCorrection [C,theta,phi,d0,z0] ', perCorrections
+
+            # get the corrections in the simpleHelix representation
+            perCorrections = np.array( [ perCorrections[0], perCorrections[2], perCorrections[3], result.getSlopeCorrection(iLabel), perCorrections[4] ] )
+            print 'perCorrection [C,phi,slope,d0,z0] ', perCorrections
+
+            # cross-check the corrections in perigee frame with different formula
+            perCorrectionsDiff = result.getPerCorrectionsOther(iLabel, bfac) - perCorrections
+            #print 'perCorrectionOther ', perCorrectionsOther
+            print 'Cross check perCorrections w/ different formula: ', perCorrectionsDiff
+            if all( abs(i)>1e-5 for i in perCorrectionsDiff[:]):
+                raise HpsGblException('Correction ', i, ' in perCorrections is different ', perCorrectionsDiff )
+            #for i in range(5):
+            #  if abs( perCorrectionsDiff[i] ) > 1e-5:
+            
+
+            # correct the helix at this point
+            # private access so use moveTo to get parameters
+            helixParsAtPoint = np.array( helixSeedAtPoint.moveTo( refPointAtPlane ) )            
+            helixParsAtPointCorrected = helixParsAtPoint + perCorrections
+
+            print 'helixParsAtPoint', helixParsAtPoint
+            print 'perCorrections', perCorrections
+            print 'helixParsAtPointCorrected', helixParsAtPointCorrected
+            
+            # create a SimpleHelix object from the corrected parameters
+            helixCorrAtPoint = simpleHelix.SimpleHelix( helixParsAtPointCorrected, refPointAtPlane )
+
+            print 'helixCorrAtPoint at ', refPointAtPlane
+            helixCorrAtPoint.dump()
+
+            # change reference point of the corrected helix to the original one
+            #delta_refPointAtOrg = np.array( refPointAtOrg ) - np.array( refPointAtPlane )
+            helixParsAtOrg = helixCorrAtPoint.moveTo( refPointAtOrg )
+
+            # create a SimpleHelix object from the corrected parameters at org
+            helixCorr = simpleHelix.SimpleHelix( helixParsAtOrg, refPointAtOrg )
+
+            print 'helixCorr at ', refPointAtOrg
+            helixCorr.dump()
+
+            # get the residual from the corrected track parameters at this point
+            # again using the moveTo to get the array since they are private
+            perParCorr = helixCorr.moveTo( refPointAtOrg )
+            print 'get residuals for parameters ', perParCorr
+            perParCorr = [ perParCorr[0], math.pi / 2.0 - math.atan( perParCorr[2] ), perParCorr[1], perParCorr[3], perParCorr[4]  ]
+            print ' in L3 parameters [C,phi,slope,d0,z0] ', perParCorr
             uResSeedCorr = utils.getMeasurementResidualIterative(perParCorr,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
             #print 'uResSeed     ', uResSeed, ' label ', iLabel, ' sensor ', strip.deName
             #print 'uResSeedCorr ', uResSeedCorr, ' label ', iLabel, ' sensor ', strip.deName
+
+            # plot the difference in residuals b/w the corrected and uncorrected track
             plot.fillSensorPlots("res_diff_gbl_seed", strip.deName, abs(uResSeedCorr) - abs(uResSeed) )
 
+            print 'CORR diff ', abs(uResSeedCorr) - abs(uResSeed), ' uResSeedCorr', uResSeedCorr, ' uResSeed ', uResSeed
+            
+            print '========='
 
-          
 
           # make plots for a given track only
           if nTry==0:
@@ -572,29 +692,6 @@ def main(args):
       hps_plots.saveHistosToFile(gDirectory,'gbltst-hps-plots-%s.root' % nametag)
 
 
-def getArgs():
-  parser = argparse.ArgumentParser(description='Run HPS GBL code')
-  parser.add_argument('file',help='Input file.')
-  parser.add_argument('--debug','-d',action='store_true',help='Debug output flag.')
-  parser.add_argument('--nevents',type=int,default=-1,help='Max events to process.')
-  parser.add_argument('--ntracks','-n',type=int,default=-1,help='Max tracks to process.')
-  parser.add_argument('--notop',action='store_true',help='Reject top tracks.')
-  parser.add_argument('--nobottom',action='store_true',help='Reject bottom tracks.')
-  parser.add_argument('--name',help='Name to add to results')
-  parser.add_argument('--mc','-m',action='store_true', help='Simulation input')
-  parser.add_argument('--save','-s',action='store_true',help='Save output')
-  parser.add_argument('--nopause',action='store_true',help='Require manual input to continue program.')
-  parser.add_argument('--noshow',action='store_true',help='Do not show plots.')
-  parser.add_argument('--useuncorrms',action='store_true',help='inflate MS errors instead of using scatterers')
-  parser.add_argument('--testrun',action='store_true',help='Test Run input')
-  parser.add_argument('--minStrips',type=int,default=0,help='Minimum number of strip clusters per track')
-  parser.add_argument('--beamspot',action='store_true',help='Beamspot included as hit')
-  parser.add_argument('--minP',type=float,help='Minimum track momentum in GeV/c')
-  parser.add_argument('--batch','-b',action='store_true',help='Run ROOT in batch mode.')
-  
-  args = parser.parse_args();
-  print args
-  return args
 
 
 if __name__ == '__main__':

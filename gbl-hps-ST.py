@@ -11,6 +11,7 @@ sys.path.append(gblpythonpath)
 from gblfit import GblPoint, GblTrajectory
 import hps_plots
 from ROOT import gDirectory, gROOT
+from hps_utils import getAxialStereo
 
 '''
 General Broken Lines script for HPS with no B-field
@@ -262,11 +263,31 @@ def main():
                 ders = glDers.getDers( track.isTop() )
                 labGlobal = ders['labels']
                 addDer = ders['ders']
-                if args.debug:
+                if args.debug or (1==1 and \
+                                  not track.isTop() and \
+                                  getAxialStereo(strip.deName) == 'stereo' and \
+                                  math.tan( track.clPar[1] ) > -0.011 and \
+                                  math.tan( track.clPar[1] ) < -0.01 and \
+                                  track.clPar[2] >0.01 and \
+                                  track.clPar[2] <0.011):
+                    
+                    print '=== Global derivatives ==='
+                    tanLambda = math.tan ( track.clPar[1] )
+                    phi0 = track.clPar[2]
+                    print 'tanLambda ', tanLambda, ' phi0 ', phi0
+                    print 'track dir tracking frame     ', tDirGlobal
+                    print 'track dir measurement frame  ', tDirMeas
+                    print 'track pred tracking frame    ', strip.tPos
+                    print 'track pred measurement frame ', tPosMeas
+                    print 'deName ', strip.deName
+                    print 'normalMeas ', normalMeas
+                    print 'strip.u ', strip.u
+                    print 'strip.ures ', strip.ures
                     print 'global derivatives for ', strip.deName, ' with id ', strip.id, ' and millepede id ', strip.millepedeId
                     print labGlobal.shape
                     for ider in range(labGlobal.shape[1]):
-                        print labGlobal[0][ider], '\t', addDer[0][ider]
+                        print '%7d %10.3e  %s' % (labGlobal[0][ider], addDer[0][ider], strip.deName)
+                    print '====================== ==='
 
                 # actually add the global derivatives to the point
                 point.addGlobals(labGlobal, addDer)
