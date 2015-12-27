@@ -275,7 +275,7 @@ def getXPlanePositionIterative(parameters,origin,normal,eps=0.0001):
 
 
 def getMeasurementResidualIterative(perPar, origin, u ,w, meas, eps):
-    '''Calculate the residual in the measurement direction for a set of track parameters.'''
+    '''Calculate the residual at plane defined by origin, u and w in the measurement direction for a set of track parameters.'''
     predIter = getXPlanePositionIterative(perPar,origin, w, eps)
     diffTrk = predIter - origin
     uPredIter = np.dot(u , diffTrk.T)
