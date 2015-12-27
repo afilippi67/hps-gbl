@@ -214,6 +214,7 @@ def main(args):
       
         # cross-check track position and residuals
         if nTry < 10:
+          
           uResIter = utils.getMeasurementResidualIterative(track.perPar,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
           #predIter = utils.getXPlanePositionIterative(track.perPar,strip.origin,strip.w,1.0e-8)
           #diffTrk = predIter - strip.origin
@@ -553,9 +554,9 @@ def main(args):
           plot.fillSensorPlots("iso", strip.deName, strip.iso)
 
           # plot residuals of the seed vs the corrected seed
-          if nTry < 10:
+          if nTry < 999999:
 
-            print '========= START TRK RESIDUALS ======== '
+            if args.debug: print '========= START DEBUG TRACK RESIDUALS ======== '
 
             # get the residual from the seed track perigee track parameters
             uResSeed = utils.getMeasurementResidualIterative(track.perPar,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
@@ -563,18 +564,17 @@ def main(args):
             # get the GBL corrections to the perigee track parameters at this point
             # NOTE: this is wrong!
             perParCorr = result.getPerParCorr(iLabel,bfac)
-            print 'perPar     ', track.perPar
-            print 'perParCorr ', perParCorr
+            if args.debug: print 'perPar     ', track.perPar
+            if args.debug: print 'perParCorr ', perParCorr
 
             # get the residual from the *corrected* (see note above) seed track perigee track parameters
             uResSeedCorrWrong = utils.getMeasurementResidualIterative(perParCorr,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
-            #print 'uResSeed     ', uResSeed, ' label ', iLabel, ' sensor ', strip.deName
-            #print 'uResSeedCorrWrong ', uResSeedCorrWrong, ' label ', iLabel, ' sensor ', strip.deName
+            uResSeedCorrCmpWrong = abs(uResSeedCorrWrong) - abs(uResSeed)
 
             # plot the difference in residuals b/w the corrected and uncorrected track
             plot.fillSensorPlots("res_diff_wrong_gbl_seed", strip.deName, abs(uResSeedCorrWrong) - abs(uResSeed) )
 
-            print 'WRONG diff ', abs(uResSeedCorrWrong) - abs(uResSeed), ' uResSeedCorrWrong', uResSeedCorrWrong, ' uResSeed ', uResSeed
+            if args.debug: print 'WRONG diff ', uResSeedCorrCmpWrong, ' uResSeedCorrWrong', uResSeedCorrWrong, ' uResSeed ', uResSeed
 
             # This is the correct way of getting the corrected track parameters in perigee frame
 
@@ -583,79 +583,96 @@ def main(args):
             # [C,phi0,dca,slope,z0]
             helixSeed = simpleHelix.SimpleHelix([ track.perPar[0], track.perPar[2], track.perPar[3], math.tan(math.pi/2.0 - track.perPar[1]), track.perPar[4] ])
 
-            print 'helixSeed '
-            helixSeed.dump()
+            if args.debug:
+              print 'helixSeed '
+              helixSeed.dump()
 
-            # change reference point to intersection of seed track with plane
+            # define reference points
+            # global origin
             refPointAtOrg = [ 0., 0. ]
+            # intersection of seed track with plane
             refPointAtPlane = [ strip.tPos[0],strip.tPos[1] ]
-            print 'move helix to interception of seed track and plane which is at x,y ', refPointAtPlane, ' ( tPos ',strip.tPos,')'
-            helixSeedParsAtPoint = helixSeed.moveTo( refPointAtPlane )
 
+            if args.debug: print 'move helix to interception of seed track and plane which is at x,y ', refPointAtPlane, ' ( tPos ',strip.tPos,')'
+            helixSeedParsAtPoint = helixSeed.moveToL3( refPointAtPlane )
+
+            # create the helix at the new ref point
             helixSeedAtPoint = simpleHelix.SimpleHelix( helixSeedParsAtPoint, refPointAtPlane )
-            print 'helixSeedAtPoint at ', refPointAtPlane
-            helixSeedAtPoint.dump()
+
+            if args.debug:
+              print 'helixSeedAtPoint'
+              helixSeedAtPoint.dump()
+            
+            # compare to the other propagation function
+            if args.debug:
+              helixSeedParsAtPointOther = helixSeed.moveTo( refPointAtPlane )
+              helixSeedAtPointOther = simpleHelix.SimpleHelix( helixSeedParsAtPointOther, refPointAtPlane )
+              print 'helixSeedAtPointOther'
+              helixSeedAtPointOther.dump()
+              print 'diff b/w propagations: ', np.array(helixSeedParsAtPoint) - np.array(helixSeedParsAtPointOther)
             
             # find the GBL corrections in perigee frame
-            print 'get corrections in perFrame'
+            if args.debug: print 'get corrections in perFrame'
             perCorrections = result.getPerCorrections(iLabel, bfac)
-            print 'perCorrection [C,theta,phi,d0,z0] ', perCorrections
+            if args.debug: print 'perCorrection [C,theta,phi,d0,z0] ', perCorrections
 
-            # get the corrections in the simpleHelix representation
+            # get the corrections in the simpleHelix representation (slope instead of theta and different ordering)
             perCorrections = np.array( [ perCorrections[0], perCorrections[2], perCorrections[3], result.getSlopeCorrection(iLabel), perCorrections[4] ] )
-            print 'perCorrection [C,phi,slope,d0,z0] ', perCorrections
+            if args.debug: print 'perCorrection [C,phi,slope,d0,z0] ', perCorrections
 
             # cross-check the corrections in perigee frame with different formula
             perCorrectionsDiff = result.getPerCorrectionsOther(iLabel, bfac) - perCorrections
-            #print 'perCorrectionOther ', perCorrectionsOther
-            print 'Cross check perCorrections w/ different formula: ', perCorrectionsDiff
+            #if args.debug: print 'perCorrectionOther ', perCorrectionsOther
+            if args.debug: print 'Cross check perCorrections w/ different formula: ', perCorrectionsDiff
             if all( abs(i)>1e-5 for i in perCorrectionsDiff[:]):
                 raise HpsGblException('Correction ', i, ' in perCorrections is different ', perCorrectionsDiff )
-            #for i in range(5):
-            #  if abs( perCorrectionsDiff[i] ) > 1e-5:
             
-
-            # correct the helix at this point
-            # private access so use moveTo to get parameters
-            helixParsAtPoint = np.array( helixSeedAtPoint.moveTo( refPointAtPlane ) )            
+            # correct the perigee helix parameters at this point
+            helixParsAtPoint = np.array( helixSeedAtPoint.getParameters() )            
             helixParsAtPointCorrected = helixParsAtPoint + perCorrections
 
-            print 'helixParsAtPoint', helixParsAtPoint
-            print 'perCorrections', perCorrections
-            print 'helixParsAtPointCorrected', helixParsAtPointCorrected
+            if args.debug:
+              print 'helixParsAtPoint', helixParsAtPoint
+              print 'perCorrections', perCorrections
+              print 'helixParsAtPointCorrected', helixParsAtPointCorrected
             
             # create a SimpleHelix object from the corrected parameters
             helixCorrAtPoint = simpleHelix.SimpleHelix( helixParsAtPointCorrected, refPointAtPlane )
 
-            print 'helixCorrAtPoint at ', refPointAtPlane
-            helixCorrAtPoint.dump()
+            if args.debug:
+              print 'helixCorrAtPoint'
+              helixCorrAtPoint.dump()
 
             # change reference point of the corrected helix to the original one
             #delta_refPointAtOrg = np.array( refPointAtOrg ) - np.array( refPointAtPlane )
-            helixParsAtOrg = helixCorrAtPoint.moveTo( refPointAtOrg )
+            helixParsAtOrg = helixCorrAtPoint.moveToL3( refPointAtOrg )
 
             # create a SimpleHelix object from the corrected parameters at org
             helixCorr = simpleHelix.SimpleHelix( helixParsAtOrg, refPointAtOrg )
 
-            print 'helixCorr at ', refPointAtOrg
-            helixCorr.dump()
+            if args.debug:
+              print 'helixCorr'
+              helixCorr.dump()
 
             # get the residual from the corrected track parameters at this point
-            # again using the moveTo to get the array since they are private
-            perParCorr = helixCorr.moveTo( refPointAtOrg )
-            print 'get residuals for parameters ', perParCorr
-            perParCorr = [ perParCorr[0], math.pi / 2.0 - math.atan( perParCorr[2] ), perParCorr[1], perParCorr[3], perParCorr[4]  ]
-            print ' in L3 parameters [C,phi,slope,d0,z0] ', perParCorr
+            perParCorrSH = helixCorr.getParameters()
+            if args.debug: print 'get residuals for parameters perParCorrSH ', perParCorrSH
+            perParCorr = [ perParCorrSH[0], math.pi / 2.0 - math.atan( perParCorrSH[3] ), perParCorrSH[1], perParCorrSH[2], perParCorrSH[4] ]
+            if args.debug: print ' and in [C,theta,phi,d0,z0] ', perParCorr
             uResSeedCorr = utils.getMeasurementResidualIterative(perParCorr,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
-            #print 'uResSeed     ', uResSeed, ' label ', iLabel, ' sensor ', strip.deName
-            #print 'uResSeedCorr ', uResSeedCorr, ' label ', iLabel, ' sensor ', strip.deName
+            uResSeedCorrCmp = abs(uResSeedCorr) - abs(uResSeed)
 
             # plot the difference in residuals b/w the corrected and uncorrected track
             plot.fillSensorPlots("res_diff_gbl_seed", strip.deName, abs(uResSeedCorr) - abs(uResSeed) )
 
-            print 'CORR diff ', abs(uResSeedCorr) - abs(uResSeed), ' uResSeedCorr', uResSeedCorr, ' uResSeed ', uResSeed
-            
-            print '========='
+            if args.debug: print 'CORR diff ', abs(uResSeedCorr) - abs(uResSeed), ' uResSeedCorr', uResSeedCorr, ' uResSeed ', uResSeed
+
+            uResSeedCorrCmpVal = abs(uResSeedCorrCmp) - abs(uResSeedCorrCmpWrong)
+
+            if args.debug: print 'CORR diff cmp ', uResSeedCorrCmpVal, ' uResSeedCorrCmp ', uResSeedCorrCmp, ' uResSeedCorrCmpWrong ', uResSeedCorrCmpWrong
+
+
+            if args.debug: print '========= END DEBUG TRACK RESIDUALS ======== '
 
 
           # make plots for a given track only
@@ -665,9 +682,6 @@ def main(args):
             plot.gr_ures_truth.SetPoint(istrip,strip.pathLen3D,strip.uresTruth) 
             plot.gr_ures_simhit.SetPoint(istrip,strip.pathLen3D,strip.uresSimHit) 
             meass = np.array([strip.ures, 0.])
-            #locRes = np.matrix(proM2l_list[strip.id]) *  np.transpose(np.matrix(meas))
-            #xT_res = locRes[0,0]
-            #yT_res = locRes[1,0]
             # find corrections to xT and yT
             plot.gr_corr_ures.SetPoint(istrip, strip.pathLen3D, corr_meas[0,0]) #u-direction
             ures_corr =  meass - corr_meas.T
