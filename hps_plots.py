@@ -819,9 +819,10 @@ class plotter:
             hw = self.h_map_res_diff_wrong_gbl_seed_layer[sensor]
             hw.SetLineColor(2)
             hw.Draw()
-            h.Draw('same')
-            
+            if h.GetMaximum() > hw.GetMaximum(): hw.SetMaximum(h.GetMaximum())
+            h.Draw('same')            
             i=i+1
+        
 
         
         
