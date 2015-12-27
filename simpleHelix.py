@@ -11,6 +11,7 @@ Created on Jun 13, 2013
 ## \file
 # Simple helix.
 
+import sys
 import math
 import numpy as np
 
@@ -34,6 +35,7 @@ class SimpleHelix(object):
     self.__rinv = parameter[-5] if len(parameter) > 4 else 0.
     ## flight direction at point of closest approach (in XY)
     self.__phi0 = parameter[-4]
+    if self.__phi0 > math.pi: self.__phi0 -= math.pi * 2
     ## direction vector at point of closest approach (in XY)
     self.__dir0 = (math.cos(self.__phi0), math.sin(self.__phi0))
     ## distance of closest approach in (XY)
@@ -49,8 +51,15 @@ class SimpleHelix(object):
     
   ## Dump helix. 
   def dump(self):
-    print " helix ", self.__rinv, self.__phi0, self.__dca, self.__dzds, self.__z0
+    print " SimpleHelix refP ", self.__refPoint
+    print "   C ", self.__rinv, " phi0 ", self.__phi0, " dca ", self.__dca, " dzds ", self.__dzds, " z0 ", self.__z0
     print "   rel. center ", self.__xRelCenter, self.__yRelCenter
+
+
+  ## return parameters
+  def getParameters(self):
+    return [self.__rinv, self.__phi0, self.__dca, self.__dzds, self.__z0]  
+
  
   ## Get (2D) arc length for given point.
   #
@@ -302,7 +311,43 @@ class SimpleHelix(object):
     newPar += [dzds, z0]
     
     return newPar
-      
+
+
+  def moveToL3(self, newRefPoint):
+    """Change reference point with equations following L3 Internal Note 1666.
+    
+    Arguments:
+    newRefPoint -- The new reference point in XY
+    """
+    
+    dx = newRefPoint[0] - self.__refPoint[0]
+    dy = newRefPoint[1] - self.__refPoint[1]
+    sinphi = math.sin(self.__phi0)
+    cosphi = math.cos(self.__phi0)
+    R = 1.0/self.__rinv
+
+    # calculate new phi
+    phinew = math.atan2( sinphi - dx/(R-self.__dca) , cosphi + dy/(R-self.__dca)  )
+
+    # difference in phi
+    # watch out for ambiguity
+    dphi = phinew - self.__phi0
+    if abs( dphi ) > math.pi:
+      print 'dphi is large ', dphi, ' from phi0 ', self.__phi0, ' and phinew ', phinew , ' take care of the ambiguity!!??'
+      sys.exit(1)
+
+    # calculate new dca
+    dcanew = self.__dca + dx*sinphi - dy*cosphi + (dx*cosphi + dy*sinphi)*math.tan( dphi/2. )
+
+    # path length from old to new point
+    s = -1.0*dphi/self.__rinv
+
+    # new z0
+    z0new = self.__z0 + s*self.__dzds
+
+    return [self.__rinv, phinew, dcanew, self.__dzds, z0new]  
+
+  
   ## Get state (parameters, covariance matrix) at point
   #
   # @param[in] aPoint   point       
