@@ -11,7 +11,8 @@ sys.path.append(gblpythonpath)
 from gblfit import GblPoint, GblTrajectory
 import hps_plots
 import simpleHelix
-from ROOT import gROOT, gDirectory
+#import hps_utils
+from ROOT import gROOT, gDirectory, TString
 
 '''
 Simple Test Program for General Broken Lines for HPS.
@@ -46,6 +47,8 @@ def getArgs():
   parser.add_argument('--beamspot',action='store_true',help='Beamspot included as hit')
   parser.add_argument('--minP',type=float,help='Minimum track momentum in GeV/c')
   parser.add_argument('--batch','-b',action='store_true',help='Run ROOT in batch mode.')
+  parser.add_argument('--elastic','-e',action='store_true',help='Select elastic events')
+  parser.add_argument('--moller','-mol',action='store_true',help='Select Moller events')
   
   args = parser.parse_args();
   print args
@@ -91,10 +94,10 @@ def main(args):
   nTry = 0
   start = time.clock()
 
+
   # loop over events
   for event in events:
     
-
     # loop over tracks in event
     for track in event.tracks:
 
@@ -131,8 +134,6 @@ def main(args):
       if args.minP != None and track.p(bfac) < args.minP:
           continue
 
-    
-
       # create the trajectory
       traj = GblTrajectory(True)
 
@@ -160,8 +161,9 @@ def main(args):
 
       # loop over strip clusters on the track
 
+      nhit = 0
       for strip in track.strips:
-        
+      
         if args.debug:
           print '\nProcessing strip id %d, millepedeId %d on sensor %s origin (%f,%f,%f)' % (strip.id, strip.millepedeId,strip.deName,strip.origin[0],strip.origin[1],strip.origin[2])
         
@@ -216,10 +218,10 @@ def main(args):
         if nTry < 10:
           
           uResIter = utils.getMeasurementResidualIterative(track.perPar,strip.origin,strip.u,strip.w,strip.meas,1.0e-8)
-          #predIter = utils.getXPlanePositionIterative(track.perPar,strip.origin,strip.w,1.0e-8)
-          #diffTrk = predIter - strip.origin
-          #uPredIter = np.dot(strip.u , diffTrk.T)
-          #uResIter = strip.meas - uPredIter
+          predIter = utils.getXPlanePositionIterative(track.perPar,strip.origin,strip.w,1.0e-8)
+          diffTrk = predIter - strip.origin
+          uPredIter = np.dot(strip.u , diffTrk.T)
+          uResIter = strip.meas - uPredIter
           if abs(uResIter - strip.ures) > 1.0e-6:
             print 'WARNING diff %.10f uResIter %.10f compared to %.10f' % (uResIter - strip.ures,uResIter,strip.ures)
             #print 'predIter ', predIter, ' origin ', strip.origin, ' diffTrk ',diffTrk,' u ', strip.u, ' diffTrk ',diffTrk.T
@@ -317,6 +319,17 @@ def main(args):
         else:
           plotsBot.fillSensorPlots("pred_meas", strip.deName, tPosMeas)
 
+
+# y vs x hit position in the sensor rf
+        values = np.array([tPosMeas[0,0], tPosMeas[1,0]])
+        plots.fillSensorPlots("xy", strip.deName, tPosMeas)
+        if(track.qOverP(bfac)<0):
+#            print strip.deName, event.id, track.id
+            plots.fillSensorPlots("xy_neg", strip.deName, tPosMeas)
+        else:
+            plots.fillSensorPlots("xy_pos", strip.deName, tPosMeas)
+        plots.fillSensorPlots("tpos", strip.deName, strip.tPos)
+        plots.fillSensorPlots("hit3D", strip.deName, strip.hitPos3D)
           
         # rotate track direction to measurement frame          
         # non-measured directions         
@@ -350,8 +363,8 @@ def main(args):
 
         # save strip and label map
         stripLabelMap[strip] = iLabel
-      
-      
+        nhit += 1
+
       if args.debug: print 'Do the fit'
       Chi2, Ndf, Lost = traj.fit()
 
@@ -392,8 +405,11 @@ def main(args):
         result.printVertexCorr()
         result.printCorrection()
       
-        
-
+      # elastic cut selection
+      if args.elastic:
+        if(result.p_gbl(bfac) <0.85 or result.p_gbl(bfac)>1.3):
+          continue
+         
       # calculate the truth chi2 from initial fit
       # get the truth and fitted params with indexes same as cov matrix of initial fit (dca,phi0,curv,z0,slope)
       perParInitialVec = np.matrix([track.d0(), track.phi0(), track.curvature(), track.z0(), track.slope()])
@@ -411,10 +427,6 @@ def main(args):
       chi2_res = np.dot(result.locPar[label], np.dot(np.linalg.inv(result.locCov[label]), result.locPar[label]))
       if nTry == 0: 
         print " Chi2: ", event.id, chi2_res, chi2_gbl_truth, chi2_initial_truth
-      
-
-
-
 
       # plots
       for iplot in range(3):
@@ -434,9 +446,34 @@ def main(args):
         #  continue
         #if(track.q<0):
         #  continue
-        
+
+
+        for i in range(0, traj.getNumPoints()-1):
+          if(track.isTop()):
+            plot.h_top_occupancy.Fill(track.strips[i].millepedeId)
+          else:
+            plot.h_bot_occupancy.Fill(track.strips[i].millepedeId)
+          
+        plot.h_nhit.Fill(nhit)
         plot.h_clPar_initial_xT.Fill(track.clPar[3])
         plot.h_clPar_initial_yT.Fill(track.clPar[4])
+        plot.h_xT_vs_slope.Fill(track.slope(),track.clPar[3]) 
+        plot.h_yT_vs_slope.Fill(track.slope(),track.clPar[4])
+        if(track.slope()):
+          plot.h_zTar.Fill(track.clPar[4]/track.slope())
+        if track.isTop():
+          plot.h_xT_vs_slope_top.Fill(track.slope(),track.clPar[3]) 
+          plot.h_yT_vs_slope_top.Fill(track.slope(),track.clPar[4]) 
+          plot.h_yT_vs_xT_top.Fill(track.clPar[3],track.clPar[4]) 
+          if(track.slope()):
+            plot.h_zTar_top.Fill(track.clPar[4]/track.slope())
+        else:
+          plot.h_xT_vs_slope_bot.Fill(track.slope(),track.clPar[3]) 
+          plot.h_yT_vs_slope_bot.Fill(track.slope(),track.clPar[4]) 
+          plot.h_yT_vs_xT_bot.Fill(track.clPar[3],track.clPar[4]) 
+          if(track.slope()):
+            plot.h_zTar_bot.Fill(track.clPar[4]/track.slope())
+        
         plot.h_clPar_initial_qOverP.Fill(track.clPar[0])
         plot.h_clPar_initial_lambda.Fill(track.clPar[1])
         # transform phi to plot nicer
@@ -449,6 +486,12 @@ def main(args):
         plot.h_clParGBL_res_phi.Fill(clParGBLRes[2])
         plot.h_clParGBL_res_xT.Fill(clParGBLRes[3])
         plot.h_clParGBL_res_yT.Fill(clParGBLRes[4])
+        if track.isTop():
+          plot.h_clParGBL_res_xT_top.Fill(clParGBLRes[3])
+          plot.h_clParGBL_res_yT_top.Fill(clParGBLRes[4])
+        else: 
+          plot.h_clParGBL_res_xT_bot.Fill(clParGBLRes[3])
+          plot.h_clParGBL_res_yT_bot.Fill(clParGBLRes[4])        
 
         plot.h_clParGBL_pull_qOverP.Fill(clParGBLRes[0]/math.sqrt(math.fabs(result.locCov[1][0,0])))
         plot.h_clParGBL_pull_lambda.Fill(clParGBLRes[1]/math.sqrt(math.fabs(result.locCov[1][1,1])))
@@ -478,6 +521,19 @@ def main(args):
         plot.h_chi2ndf.Fill(Chi2/Ndf)
         plot.h_chi2prob.Fill(utils.chi2Prob(Chi2,Ndf))
         plot.h_p.Fill(track.p(bfac))
+#        print 'py', math.cos(track.theta())
+        costhetax = math.sin(track.theta())*math.sin(track.phi0())
+        py = track.p(bfac)*math.cos(track.theta())
+#          if(abs(costhetax)<0.01 and py<0):
+        if track.isTop():
+          plot.h_p_top.Fill(track.p(bfac))
+          plot.h_p_vs_costhetax_top.Fill(math.sin(track.theta())*math.sin(track.phi0()), track.p(bfac))
+          plot.h_costhetay_vs_z0_top.Fill(track.z0(), math.cos(track.theta()))
+        else: 
+          plot.h_p_bot.Fill(track.p(bfac))
+          plot.h_p_vs_costhetax_bot.Fill(math.sin(track.theta())*math.sin(track.phi0()), track.p(bfac))
+          plot.h_costhetay_vs_z0_bot.Fill(track.z0(), math.cos(track.theta()))
+
         plot.h_qOverP.Fill(track.qOverP(bfac))
         if args.mc:
           plot.h_qOverP_truth_res.Fill(track.qOverP(bfac) - track.q()/track.p_truth(bfac))   
@@ -489,6 +545,11 @@ def main(args):
         plot.h_qOverP_corr.Fill(result.curvCorr())
         plot.h_qOverP_gbl.Fill(result.qOverP_gbl(bfac))
         plot.h_p_gbl.Fill(result.p_gbl(bfac))
+        if (track.isTop()):
+          plot.h_p_gbl_top.Fill(result.p_gbl(bfac))
+        else: 
+          plot.h_p_gbl_bot.Fill(result.p_gbl(bfac))
+
         if args.mc:
           plot.h_qOverP_truth_res_gbl.Fill(result.qOverP_gbl(bfac) - result.track.qOverP_truth(bfac))
           plot.h_p_truth_res_gbl.Fill(result.p_gbl(bfac) - result.track.p_truth(bfac))
@@ -528,6 +589,14 @@ def main(args):
           else:
             iLabel = 1
 
+          prjTrkToMeas = np.array([strip.u,strip.v,strip.w])
+          # rotate to measurement frame          
+          tDirMeas = np.dot( prjTrkToMeas, tDirGlobal.T) 
+          # vector coplanar with measurement plane from origin to prediction
+          tDiff = np.array( [strip.tPos]) - np.array( [strip.origin] )
+          # rotate to measurement frame          
+          tPosMeas = np.dot( prjTrkToMeas, tDiff.T) 
+
           #residuals
           plot.fillSensorPlots("res", strip.deName, strip.ures)
           plot.fillSensorPlots("res_truth", strip.deName, strip.uresTruth)
@@ -552,6 +621,14 @@ def main(args):
           #  #sys.exit(1)
           plot.fillSensorPlots("res_gbl_vs_u", strip.deName, [ures_gbl, strip.meas] )
           plot.fillSensorPlots("iso", strip.deName, strip.iso)
+
+          values = np.array([tPosMeas[0,0], ures_gbl])
+          plot.fillSensorPlots("resVsPos", strip.deName, values)
+          values = np.array([tPosMeas[1,0], ures_gbl])
+          plot.fillSensorPlots("resUVsPosV", strip.deName, values)
+# attach & exit angle
+#          plot.fillSensorPlots("attachAngle", strip.deName, math.pi/2 - clParGBLRes[1])
+          plot.fillSensorPlots("exitAngle", strip.deName, strip.scatAngle)
 
           # plot residuals of the seed vs the corrected seed
           if nTry < 999999:
@@ -682,6 +759,9 @@ def main(args):
             plot.gr_ures_truth.SetPoint(istrip,strip.pathLen3D,strip.uresTruth) 
             plot.gr_ures_simhit.SetPoint(istrip,strip.pathLen3D,strip.uresSimHit) 
             meass = np.array([strip.ures, 0.])
+            #locRes = np.matrix(proM2l_list[strip.id]) *  np.transpose(np.matrix(meas))
+            #xT_res = locRes[0,0]
+            #yT_res = locRes[1,0]
             # find corrections to xT and yT
             plot.gr_corr_ures.SetPoint(istrip, strip.pathLen3D, corr_meas[0,0]) #u-direction
             ures_corr =  meass - corr_meas.T
@@ -698,12 +778,36 @@ def main(args):
     print " Chi2Sum/NdfSum ", Chi2Sum / NdfSum
     print " LostSum/nTry ", LostSum / nTry
   print " Make plots "
+
+  # Moller cut selection
+  if args.moller:
+    for event in events:
+      if(len(event.tracks)!=2):
+        continue
+      track0 = event.tracks[0]
+      track1 = event.tracks[1]
+      sign0 = track0.qOverP(bfac)
+      sign1 = track1.qOverP(bfac)
+      if(sign0>0):
+         continue
+      if(sign1>0):
+         continue
+      p0 = track0.p(bfac)  
+      p1 = track1.p(bfac)
+      beamEnergy = 1.1
+      if(abs(p0+p1- beamEnergy) < 0.1):
+        print 'qui ho un moller!'
+        p.h_thetay_vs_thetax_moller(math.acos(math.sin(track0.theta())*math.sin(track0.phi0())), track0.theta())
+        p.h_thetay_vs_thetax_moller(math.acos(math.sin(track1.theta())*math.sin(track1.phi0())), track1.theta())
+
   if nTry > 0 and not args.noshow:
     plots.show(args.save,args.nopause)
     plotsTop.show(args.save,args.nopause)
     plotsBot.show(args.save,args.nopause)
     if args.save:
       hps_plots.saveHistosToFile(gDirectory,'gbltst-hps-plots-%s.root' % nametag)
+
+
 
 
 

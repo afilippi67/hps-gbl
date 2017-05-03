@@ -1,5 +1,5 @@
 import re, sys, os, subprocess
-from ROOT import TH1F, TH2F, TGraph, TGraphErrors, TCanvas, TLegend, TLatex, gStyle, gDirectory, TIter, TFile, gPad
+from ROOT import TH1F, TH2F, TGraph, TGraphErrors, TCanvas, TLegend, TLatex, gStyle, gDirectory, TIter, TFile, gPad, TString
 from ROOT import Double as ROOTDouble
 from math import sqrt
 pyutilspath = os.getenv('PYTHONUTILS','pythonutils')
@@ -51,6 +51,9 @@ class plotter:
             
 
     def makePlots(self):
+        self.h_nhit = TH1F('h_nhit'+self.halftag,';number of hits per track;Entries',12,1.,13.)
+        self.h_top_occupancy = TH1F('h_top_occupancy'+self.halftag,';number of hit sensor, top;Entries',18,1.,19.)
+        self.h_bot_occupancy = TH1F('h_bot_occupancy'+self.halftag,';number of hit sensor, bot;Entries',18,1.,19.)
         self.h_chi2_gbl_truth = TH1F('h_chi2_gbl_truth'+self.halftag,';GBL truth #chi^{2};Entries',50,0.,50.)
         self.h_chi2ndf_gbl_truth = TH1F('h_chi2ndf_gbl_truth'+self.halftag,';GBL truth #chi^{2}/ndf;Entries',50,0.,20.)
         self.h_chi2prob_gbl_truth = TH1F('h_chi2prob_gbl_truth'+self.halftag,';GBL truth #chi^{2} prob.;Entries',50,0.,1.)
@@ -63,10 +66,20 @@ class plotter:
         self.h_chi2_initial_truth = TH1F('h_chi2_initial_truth'+self.halftag,';Track #chi^{2};Entries',50,0.,50.)
         self.h_chi2ndf_initial_truth = TH1F('h_chi2ndf_initial_truth'+self.halftag,';Track #chi^{2}/ndf;Entries',50,0.,8.)
         self.h_chi2prob_initial_truth = TH1F('h_chi2prob_initial_truth'+self.halftag,';Track #chi^{2} prob.;Entries',50,0.,1.)
-        self.h_p = TH1F('h_p'+self.halftag,';Track momentum;Entries',50,0.,1.5)
-        self.h_p_gbl = TH1F('h_p_gbl'+self.halftag,';Track momentum;Entries',50,0.,1.5)
-        self.h_p_truth = TH1F('h_p_truth'+self.halftag,';Track momentum;Entries',50,0.,1.5)
-        self.h_p_truth_res = TH1F('h_p_truth_res'+self.halftag,';Track - Truth momentum;Entries',50,-0.3,0.3)
+        self.h_p = TH1F('h_p'+self.halftag,';Track momentum;Entries',150,0.,3.)
+        self.h_p_top = TH1F('h_p_top'+self.halftag,';Track momentum, top tracks;Entries',150,0.,3.)
+        self.h_p_bot = TH1F('h_p_bot'+self.halftag,';Track momentum, bottom tracks;Entries',150,0.,3.)
+        self.h_p_vs_costhetax_top = TH2F('h_p_vs_costhetax_top'+self.halftag,';Track momentum vs costhetax, top tracks;Entries',100, -0.15, 0.15, 150,0.,3.)
+        self.h_p_vs_costhetax_bot = TH2F('h_p_vs_costhetax_bot'+self.halftag,';Track momentum vs costhetax, bottom tracks;Entries',100, -0.15, 0.15, 150,0.,3.)
+        self.h_costhetay_vs_z0_top = TH2F('h_costhetay_vs_z0_top'+self.halftag,';costhetay vs z0, top tracks;Entries',100, -1., 1., 100, -0.2, 0.2)
+        self.h_costhetay_vs_z0_bot = TH2F('h_costhetay_vs_z0_bot'+self.halftag,';costhetay vs z0, bottom tracks;Entries',100, -1., 1., 100, -0.2, 0.2)
+        self.h_thetay_vs_thetax_moller = TH2F('h_thetay_vs_thetax_moller'+self.halftag,';theta_y vs theta_x;Entries',100, -0.5, 0.5, 100, 0., 0.1)
+        
+        self.h_p_gbl = TH1F('h_p_gbl'+self.halftag,';Track momentum;Entries',150,0.,3.)
+        self.h_p_gbl_top = TH1F('h_p_gbl_top'+self.halftag,';Track momentum GBL, top tracks;Entries',150,0.,3.)
+        self.h_p_gbl_bot = TH1F('h_p_gbl_bot'+self.halftag,';Track momentum GBL, bot tracks;Entries',150,0.,3.)
+        self.h_p_truth = TH1F('h_p_truth'+self.halftag,';Track momentum;Entries',150,0.,3.)
+        self.h_p_truth_res = TH1F('h_p_truth_res'+self.halftag,';Track - Truth momentum;Entries',150,-0.3,0.3)
         self.h_p_truth_res_vs_p = TH2F('h_p_truth_res_vs_p'+self.halftag,';Truth momentum;Track - Truth momentum',8,0.3,1.2,50,-0.3,0.3)
         self.h_p_truth_res_gbl = TH1F('h_p_truth_res_gbl'+self.halftag,';Track - Truth momentum;Entries',50,-0.3,0.3)
         self.h_p_truth_res_gbl_vs_p = TH2F('h_p_truth_res_gbl_vs_p'+self.halftag,';Truth momentum;Track - Truth momentum',8,0.3,1.2,50,-0.3,0.3)
@@ -77,6 +90,18 @@ class plotter:
         self.h_qOverP_gbl = TH1F('h_qOverP_gbl'+self.halftag,';q/p;Entries',50,-5,5)
         self.h_vtx_xT_corr = TH1F('h_vtx_xT_corr'+self.halftag,';x_{T} vtx corr',50,-5.0e-1,5.0e-1)
         self.h_vtx_yT_corr = TH1F('h_vtx_yT_corr'+self.halftag,';y_{T} vtx corr',50,-5.0e-1,5.0e-1)
+        self.h_xT_vs_slope = TH2F('h_xT_vs_slope'+self.halftag,';x_{T} vs slope', 50, -0.1, 0.1, 50,-5.,5.)
+        self.h_yT_vs_slope = TH2F('h_yT_vs_slope'+self.halftag,';y_{T} vs slope', 50, -0.1, 0.1, 50,-5.,5.)
+        self.h_xT_vs_slope_top = TH2F('h_xT_vs_slope_top'+self.halftag,';x_{T} vs slope top', 50, 0., 0.1, 50,-5.,5.)
+        self.h_yT_vs_slope_top = TH2F('h_yT_vs_slope_top'+self.halftag,';y_{T} vs slope top', 50, 0., 0.1, 50,-5.,5.)
+        self.h_xT_vs_slope_bot = TH2F('h_xT_vs_slope_bot'+self.halftag,';x_{T} vs slope bot', 50, -0.1, 0., 50,-5.,5.)
+        self.h_yT_vs_slope_bot = TH2F('h_yT_vs_slope_bot'+self.halftag,';y_{T} vs slope bot', 50, -0.1, 0., 50,-5.,5.)
+        self.h_yT_vs_xT_top = TH2F('h_yT_vs_xT_top'+self.halftag,';y_{T} vs x_{T} top', 100, -5., 5., 100,-2.5,2.5)
+        self.h_yT_vs_xT_bot = TH2F('h_yT_vs_xT_bot'+self.halftag,';y_{T} vs x_{T} bot', 100, -5., 5., 100,-2.5,2.5)
+        self.h_zTar = TH1F('h_zTar'+self.halftag,';z_{target}', 100, -30., 30.)
+        self.h_zTar_top = TH1F('h_zTar_top'+self.halftag,';z_{target} TOP', 100, -30., 30.)
+        self.h_zTar_bot = TH1F('h_zTar_bot'+self.halftag,';z_{target} BOT', 100, -30., 30.)
+
         self.h_d0_corr = TH1F('h_d0_corr'+self.halftag,';d_{0} corr [mm]',50,-5.0e-1,5.0e-1)
         self.h_z0_corr = TH1F('h_z0_corr'+self.halftag,';z_{0} corr [mm]',50,-5.0e-1,5.0e-1)
         if self.testRun:
@@ -120,6 +145,10 @@ class plotter:
         self.h_yT_corr = TH2F('h_yT_corr'+self.halftag,';Point;y_{T} correction (mm)',24,1.,25.,100,-0.3,0.3)
         self.h_clParGBL_res_xT = TH1F('h_clParGBL_res_xT'+self.halftag,';x_{T}-x_{T,truth}',50,-3.0e0,3.0e0)
         self.h_clParGBL_res_yT = TH1F('h_clParGBL_res_yT'+self.halftag,';y_{T}-y_{T,truth}',50,-3.0e0,3.0e0)
+        self.h_clParGBL_res_xT_top = TH1F('h_clParGBL_res_xT_top'+self.halftag,';x_{T}-x_{T,truth}',50,-3.0e0,3.0e0)
+        self.h_clParGBL_res_yT_top = TH1F('h_clParGBL_res_yT_top'+self.halftag,';y_{T}-y_{T,truth}',50,-3.0e0,3.0e0)
+        self.h_clParGBL_res_xT_bot = TH1F('h_clParGBL_res_xT_bot'+self.halftag,';x_{T}-x_{T,truth}',50,-3.0e0,3.0e0)
+        self.h_clParGBL_res_yT_bot = TH1F('h_clParGBL_res_yT_bot'+self.halftag,';y_{T}-y_{T,truth}',50,-3.0e0,3.0e0)
         self.h_clParGBL_res_qOverP = TH1F('h_clParGBL_res_qOverP'+self.halftag,';q/p-q/p_{truth}',50,-1.0e0,1.0e0)
         self.h_clParGBL_res_lambda = TH1F('h_clParGBL_res_lambda'+self.halftag,';#lambda-#lambda_{truth}',50,-1.0e-2,1.0e-2)
         self.h_clParGBL_res_phi = TH1F('h_clParGBL_res_phi'+self.halftag,';#phi-#phi_{truth}',50,-1.0e-2,1.0e-2)
@@ -145,6 +174,16 @@ class plotter:
         self.h_map_pred_layer = {}
         self.h_map_iso_layer = {}
 
+        self.h_map_resVsPos_layer = {}
+        self.h_map_attachAngle_layer = {}
+        self.h_map_exitAngle_layer = {}
+        self.h_map_xy_layer = {}
+        self.h_map_xy_pos_layer = {}
+        self.h_map_xy_neg_layer = {}
+        self.h_map_tpos_layer = {}
+        self.h_map_hit3D_layer = {}
+        self.h_map_resUVsPosV_layer = {}
+
         self.gr_ures = TGraphErrors()
         self.gr_ures_truth = TGraph()
         self.gr_ures_simhit = TGraph()
@@ -163,7 +202,11 @@ class plotter:
                 h = self.h_map_res_layer[deName]
             else:
                 l = getLayer(deName)
-                xmax = 0.01 + (l-1)*0.6
+#                xmax = 0.01 + (l-1)*0.6
+                if l==1:
+                   xmax = 1.
+                else:
+                   xmax = 0.01 + (l-1)*0.6
                 xmin = -1.*xmax
                 h = TH1F('h_res_%s%s'%(deName,self.halftag),'%s;Residual in measurement direction (mm);Entries'%deName,50,xmin,xmax)
                 self.h_map_res_layer[deName] = h
@@ -177,7 +220,7 @@ class plotter:
                 xmin = -1.*xmax
                 ymax = 0.04
                 ymin = -1.*ymax
-                h = TH2F('h_res_gbl_vs_vpred_%s%s'%(deName,self.halftag),'%s;Pred v (mm);GBL residual in measurement direction (mm)'%deName,20,xmin,xmax,50,ymin,ymax)
+                h = TH2F('h_res_gbl_vs_vpred_%s%s'%(deName,self.halftag),'%s;Pred v (mm);GBL residual in measurement direction (mm)'%deName,100,xmin,xmax,100,ymin,ymax)
                 self.h_map_res_gbl_vs_vpred_layer[deName] = h
             h.Fill(val[1],val[0])
         elif type=="res_gbl_vs_u":
@@ -189,7 +232,7 @@ class plotter:
                 xmin = -1.*xmax
                 ymax = 0.04
                 ymin = -1.*ymax
-                h = TH2F('h_res_gbl_vs_u_%s%s'%(deName,self.halftag),'%s;Meas u (mm);GBL residual in measurement direction (mm)'%deName,20,xmin,xmax,50,ymin,ymax)
+                h = TH2F('h_res_gbl_vs_u_%s%s'%(deName,self.halftag),'%s;Meas u (mm);GBL residual in measurement direction (mm)'%deName,100,xmin,xmax,100,ymin,ymax)
                 self.h_map_res_gbl_vs_u_layer[deName] = h
             h.Fill(val[1],val[0])
         elif type=="res_truth":
@@ -319,7 +362,7 @@ class plotter:
                 h = self.h_map_pred_layer[deName]
             else:
                 l = getLayer(deName)
-                h = TH2F('h_pred_%s%s'%(deName,self.halftag),'%s;Hit pred. in v (mm);Hit pred. in u (mm)'%deName,20,-60,60,20,-25,25)
+                h = TH2F('h_pred_%s%s'%(deName,self.halftag),'%s;Hit pred. in v (mm);Hit pred. in u (mm)'%deName,100,-60,60,100,-25,25)
                 self.h_map_pred_layer[deName] = h
             h.Fill(val[1],val[0])
         elif type=="iso":
@@ -333,6 +376,222 @@ class plotter:
                 h.Fill(-2.0)
             else:
                 h.Fill(val)
+
+        elif type=="resVsPos":
+            if deName in self.h_map_resVsPos_layer:
+                h = self.h_map_resVsPos_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 20
+                xmin = -1.*xmax
+                ymax = 0.02
+                ymin = -1.*ymax
+                h = TH2F('h_resVsPos_%s%s'%(deName,self.halftag),'%s;u residual (mm) vs u position (mm);Entries'%deName,50,xmin,xmax, 50, ymin, ymax)
+                self.h_map_resVsPos_layer[deName] = h
+                name = TString(h.GetName())
+                if(name.Contains("b")):
+                    h.SetMarkerColor(2)
+                else:
+                    h.SetMarkerColor(4)
+
+            name = TString(h.GetName())
+            if(name.Contains("axial")):
+                if(name.Contains("slot")):
+                    h.Fill(-val[0],val[1])
+                else:
+                    h.Fill(val[0],val[1])
+            else:
+               if(name.Contains("slot")):
+                   h.Fill(val[0],val[1])
+               else:
+                   h.Fill(-val[0],val[1])
+        elif type=="resUVsPosV":
+            if deName in self.h_map_resUVsPosV_layer:
+                h = self.h_map_resUVsPosV_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 50
+                xmin = -1.*xmax
+                ymax = 0.05
+                ymin = -1.*ymax
+                h = TH2F('h_resUVsPosV_%s%s'%(deName,self.halftag),'%s;u residual (mm) vs v position (mm);Entries'%deName,50,xmin,xmax, 50, ymin, ymax)
+                self.h_map_resUVsPosV_layer[deName] = h
+                name = TString(h.GetName())
+                if(name.Contains("b")):
+                    h.SetMarkerColor(2)
+                else:
+                    h.SetMarkerColor(4)
+
+            name = TString(h.GetName())
+            if(name.Contains("axial")):
+                if(name.Contains("slot")):
+                    h.Fill(-val[0],val[1])
+                else:
+                    h.Fill(val[0],val[1])
+            else:
+               if(name.Contains("slot")):
+                   h.Fill(-val[0],val[1])
+               else:
+                   h.Fill(val[0],val[1])
+        elif type=="attachAngle":
+            if deName in self.h_map_attachAngle_layer:
+                h = self.h_map_attachAngle_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 5.e-3
+                xmin = 0.
+                h = TH1F('h_attachAngle_%s%s'%(deName,self.halftag),'%s;u attach angle on layer;Entries'%deName,50,xmin,xmax)
+                self.h_map_attachAngle_layer[deName] = h
+            h.Fill(val)
+        elif type=="exitAngle":
+            if deName in self.h_map_exitAngle_layer:
+                h = self.h_map_exitAngle_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 5.e-3
+                xmin = 0.
+                h = TH1F('h_exitAngle_%s%s'%(deName,self.halftag),'%s;u exit angle from layer;Entries'%deName,50,xmin,xmax)
+                self.h_map_exitAngle_layer[deName] = h
+            h.Fill(val)
+        elif type=="xy":
+            if deName in self.h_map_xy_layer:
+                h = self.h_map_xy_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 50
+                xmin = -1.*xmax
+                ymax = 20
+                ymin = -1.*ymax
+                h = TH2F('h_xy_%s%s'%(deName,self.halftag),'%s; u (mm) vs v position (mm);Entries'%deName,100,xmin,xmax, 100, ymin, ymax)
+                self.h_map_xy_layer[deName] = h
+                name = TString(h.GetName())
+                if(name.Contains("b")):
+                    h.SetMarkerColor(2)
+                else:
+                    h.SetMarkerColor(4)
+            name = TString(h.GetName())
+            if(name.Contains("axial")):
+                if(name.Contains("slot")):
+                    h.Fill(-val[1],-val[0])
+                else:
+                    h.Fill(val[1],val[0])
+            else:
+               if(name.Contains("slot")):
+                   h.Fill(-val[1],val[0])
+               else:
+                   h.Fill(val[1],-val[0])
+        elif type=="xy_pos":
+            if deName in self.h_map_xy_pos_layer:
+                h = self.h_map_xy_pos_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 50
+                xmin = -1.*xmax
+                ymax = 20
+                ymin = -1.*ymax
+                h = TH2F('h_xy_pos_%s%s'%(deName,self.halftag),'%s; u (mm) vs v position (mm) pos tracks;Entries'%deName,100,xmin,xmax, 100, ymin, ymax)
+                self.h_map_xy_pos_layer[deName] = h
+                name = TString(h.GetName())
+                if(name.Contains("b")):
+                    h.SetMarkerColor(2)
+                else:
+                    h.SetMarkerColor(4)
+            name = TString(h.GetName())
+            if(name.Contains("axial")):
+                if(name.Contains("slot")):
+                    h.Fill(-val[1],-val[0])
+                else:
+                    h.Fill(val[1],val[0])
+            else:
+               if(name.Contains("slot")):
+                   h.Fill(-val[1],val[0])
+               else:
+                   h.Fill(val[1],-val[0])
+        elif type=="xy_neg":
+#            print deName, self.h_map_xy_neg_layer
+            if deName in self.h_map_xy_neg_layer:
+                h = self.h_map_xy_neg_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 50
+                xmin = -1.*xmax
+                ymax = 20
+                ymin = -1.*ymax
+                h = TH2F('h_xy_neg_%s%s'%(deName,self.halftag),'%s; u (mm) vs v position (mm) neg tracks;Entries'%deName,100,xmin,xmax, 100, ymin, ymax)
+                self.h_map_xy_neg_layer[deName] = h
+                name = TString(h.GetName())
+                if(name.Contains("b")):
+                    h.SetMarkerColor(2)
+                else:
+                    h.SetMarkerColor(4)
+            name = TString(h.GetName())
+            if(name.Contains("axial")):
+                if(name.Contains("slot")):
+                    h.Fill(-val[1],-val[0])
+                else:
+                    h.Fill(val[1],val[0])
+            else:
+               if(name.Contains("slot")):
+                   h.Fill(-val[1],val[0])
+               else:
+                   h.Fill(val[1],-val[0])
+        elif type=="tpos":
+            if deName in self.h_map_tpos_layer:
+                h = self.h_map_tpos_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 130.
+                xmin = -80.
+                ymax = 60.
+                ymin = -1.*ymax
+                h = TH2F('h_tpos_%s%s'%(deName,self.halftag),'%s; u (mm) vs v position (mm) pos tracks global RF;Entries'%deName,210,xmin,xmax, 120, ymin, ymax)
+                self.h_map_tpos_layer[deName] = h
+                name = TString(h.GetName())
+                if(name.Contains("b")):
+                    h.SetMarkerColor(2)
+                else:
+                    h.SetMarkerColor(4)
+            name = TString(h.GetName())
+            if(name.Contains("axial")):
+                if(name.Contains("slot")):
+                    h.Fill(val[1],val[2])
+                else:
+                    h.Fill(val[1],val[2])
+            else:
+               if(name.Contains("slot")):
+                   h.Fill(val[1],val[2])
+               else:
+                   h.Fill(val[1],val[2])
+        elif type=="hit3D":
+            if deName in self.h_map_hit3D_layer:
+                h = self.h_map_hit3D_layer[deName]
+            else:
+                l = getLayer(deName)
+                xmax = 130.
+                xmin = -80.
+                ymax = 60.
+                ymin = -1.*ymax
+                h = TH2F('h_hit3D_%s%s'%(deName,self.halftag),'%s; u (mm) vs v position (mm) pos tracks global RF;Entries'%deName,210,xmin,xmax, 120, ymin, ymax)
+                self.h_map_hit3D_layer[deName] = h
+                name = TString(h.GetName())
+                if(name.Contains("b")):
+                    h.SetMarkerColor(2)
+                else:
+                    h.SetMarkerColor(4)
+            name = TString(h.GetName())
+            if(name.Contains("axial")):
+                if(name.Contains("slot")):
+                    h.Fill(val[1],val[2])
+                else:
+                    h.Fill(val[1],val[2])
+            else:
+               if(name.Contains("slot")):
+                   h.Fill(val[1],val[2])
+               else:
+                   h.Fill(val[1],val[2])
+
+
+
         else:
             print "Thus type ius not defined ", type
             sys.exit(1)
@@ -767,8 +1026,16 @@ class plotter:
         plotutils.setGraphXLabels(gr_res_initial_sensor_mean,idToSensor)
         plotutils.setGraphXLabels(gr_res_initial_sensor_rms,idToSensor)
         
-        
-        
+        c_res_initial_sensor2 = TCanvas('c_res_initial_sensor2'+self.halftag,'c_res_initial_sensor2'+self.halftag,10,10,690*2,390*2)
+        c_res_initial_sensor2.Divide(6,3)
+        i = 1
+        ms = sorted(self.h_map_res_layer,key=getLayer)
+        idToSensor = {}
+        for sensor in ms:
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
+            c_res_initial_sensor.cd(i)
+            h = self.h_map_res_layer[sensor] 
+            h.Draw()
         
         c_res_gbl_sensor = TCanvas('c_res_gbl_sensor'+self.halftag,'c_res_gbl_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_gbl_sensor.Divide(self.nSensorRows,self.nSensorCols)
@@ -804,8 +1071,15 @@ class plotter:
         plotutils.setGraphXLabels(gr_res_gbl_sensor_mean,idToSensor)
         plotutils.setGraphXLabels(gr_res_gbl_sensor_rms,idToSensor)
 
-
-
+        c_res_gbl_sensor2 = TCanvas('c_res_gbl_sensor2'+self.halftag,'c_res_gbl_sensor2'+self.halftag,10,10,690,390*2)
+        c_res_gbl_sensor2.Divide(2,12)
+        i = 1
+        ms = sorted(self.h_map_res_gbl_layer,key=getLayer)
+        for sensor in ms:
+            i = getCanvasIdxTwoCols(sensor, self.beamspot)
+            c_res_gbl_sensor2.cd(i)
+            h = self.h_map_res_gbl_layer[sensor] 
+            h.Draw()
 
         c_res_diff_gbl_seed_sensor = TCanvas('c_res_diff_gbl_seed_sensor'+self.halftag,'c_res_diff_gbl_seed_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
         c_res_diff_gbl_seed_sensor.Divide(self.nSensorRows,self.nSensorCols)
@@ -850,6 +1124,7 @@ class plotter:
             if h.GetEntries() > 10.:
                 h.Fit('gaus','Q')
             h.Draw()
+
 
 
         c_yTcorr_sensor = TCanvas('c_yTcorr_sensor'+self.halftag,'c_yTcorr_sensor'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
@@ -1190,18 +1465,143 @@ class plotter:
             h = self.h_map_iso_layer[sensor] 
             h.Draw("")
 
+        c_resVsPos_sensor = TCanvas('c_resVsPos_sensor'+self.halftag,'c_resVsPos_sensor'+self.halftag,10,10,690*2,390*2)
+        if self.isTop and self.isBot:
+            c_resVsPos_sensor.Divide(6,6)
+        else:
+            c_resVsPos_sensor.Divide(6,3)
+
+        i = 1
+        ms = sorted(self.h_map_resVsPos_layer,key=getLayer)
+        for sensor in ms:
+            c_resVsPos_sensor.cd(i)
+            h = self.h_map_resVsPos_layer[sensor] 
+            h.Draw("")
+            i=i+1
+
+        c_resUVsPosV_sensor = TCanvas('c_resUVsPosV_sensor'+self.halftag,'c_resUVsPosV_sensor'+self.halftag,10,10,690*2,390*2)
+        if self.isTop and self.isBot:
+            c_resUVsPosV_sensor.Divide(6,6)
+        else:
+            c_resUVsPosV_sensor.Divide(6,3)
+
+        i = 1
+        ms = sorted(self.h_map_resUVsPosV_layer,key=getLayer)
+        for sensor in ms:
+            c_resUVsPosV_sensor.cd(i)
+            h = self.h_map_resUVsPosV_layer[sensor] 
+            h.Draw("")
+            i=i+1
+
+        c_attachAngle_sensor = TCanvas('c_attachAngle_sensor'+self.halftag,'c_attachAngle_sensor'+self.halftag,10,10,690*2,390*2)
+        if self.isTop and self.isBot:
+            c_attachAngle_sensor.Divide(6,6)
+        else:
+            c_attachAngle_sensor.Divide(6,3)
+        i = 1
+        ms = sorted(self.h_map_attachAngle_layer,key=getLayer)
+        for sensor in ms:
+            c_attachAngle_sensor.cd(i)
+            h = self.h_map_attachAngle_layer[sensor] 
+            h.Draw("")
+            i=i+1
+
+        c_exitAngle_sensor = TCanvas('c_exitAngle_sensor'+self.halftag,'c_exitAngle_sensor'+self.halftag,10,10,690*2,390*2)
+        if self.isTop and self.isBot:
+            c_exitAngle_sensor.Divide(6,6)
+        else:
+            c_exitAngle_sensor.Divide(6,3)
+        i = 1
+        ms = sorted(self.h_map_exitAngle_layer,key=getLayer)
+        for sensor in ms:
+            c_exitAngle_sensor.cd(i)
+            h = self.h_map_exitAngle_layer[sensor] 
+            h.Draw("")
+            i=i+1
+
+        c_xy_sensor = TCanvas('c_xy_sensor'+self.halftag,'c_xy_sensor'+self.halftag,10,10,690*2,390*2)
+        if self.isTop and self.isBot:
+            c_xy_sensor.Divide(6,6)
+        else:
+            c_xy_sensor.Divide(6,3)
+
+        i = 1
+        ms = sorted(self.h_map_xy_layer,key=getLayer)
+        for sensor in ms:
+            c_xy_sensor.cd(i)
+            h = self.h_map_xy_layer[sensor] 
+            h.Draw("")
+            i=i+1
+
+        c_xy_neg_sensor = TCanvas('c_xy_neg_sensor'+self.halftag,'c_xy_neg_sensor'+self.halftag,10,10,690*2,390*2)
+        if self.isTop and self.isBot:
+            c_xy_neg_sensor.Divide(6,6)
+        else:
+            c_xy_neg_sensor.Divide(6,3)
+
+        i = 1
+        ms = sorted(self.h_map_xy_neg_layer,key=getLayer)
+        for sensor in ms:
+            c_xy_neg_sensor.cd(i)
+            h = self.h_map_xy_neg_layer[sensor] 
+            h.Draw("")
+            i=i+1
+
+        c_xy_pos_sensor = TCanvas('c_xy_pos_sensor'+self.halftag,'c_xy_pos_sensor'+self.halftag,10,10,690*2,390*2)
+        if self.isTop and self.isBot:
+            c_xy_pos_sensor.Divide(6,6)
+        else:
+            c_xy_pos_sensor.Divide(6,3)
+
+        i = 1
+        ms = sorted(self.h_map_xy_pos_layer,key=getLayer)
+        for sensor in ms:
+            c_xy_pos_sensor.cd(i)
+            h = self.h_map_xy_pos_layer[sensor] 
+            h.Draw("")
+            i=i+1
+
+        c_tpos_sensor = TCanvas('c_tpos_sensor'+self.halftag,'c_xy_pos_sensor'+self.halftag,10,10,690*2,390*2)
+        if self.isTop and self.isBot:
+            c_tpos_sensor.Divide(6,6)
+        else:
+            c_tpos_sensor.Divide(6,3)
+
+        i = 1
+        ms = sorted(self.h_map_tpos_layer,key=getLayer)
+        for sensor in ms:
+            c_tpos_sensor.cd(i)
+            h = self.h_map_tpos_layer[sensor] 
+            h.Draw("")
+            i=i+1
+
+        c_hit3D_sensor = TCanvas('c_hit3D_sensor'+self.halftag,'c_hit3D_sensor'+self.halftag,10,10,690*2,390*2)
+        if self.isTop and self.isBot:
+            c_hit3D_sensor.Divide(6,6)
+        else:
+            c_hit3D_sensor.Divide(6,3)
+
+        i = 1
+        ms = sorted(self.h_map_hit3D_layer,key=getLayer)
+        for sensor in ms:
+            c_hit3D_sensor.cd(i)
+            h = self.h_map_hit3D_layer[sensor] 
+            h.Draw("")
+            i=i+1
 
 
         if(save):
             c_all = TCanvas('c_all'+self.halftag,'c_all'+self.halftag,10,10,plotter.canWx_wide,plotter.canWy_wide)
             c_all.Print('gbltst-hps-plots%s.ps['%self.getTag())
             c_res_initial_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+            c_res_initial_sensor2.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor_mean.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_initial_sensor_rms.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_truth_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
-            c_res_gbl_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
+#            c_res_gbl_sensor2.Print('gbltst-hps-plots%s.ps'%self.getTag())
+#            c_res_gbl_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_diff_gbl_seed_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_vs_vpred_sensor.Print('gbltst-hps-plots%s.ps'%self.getTag())
             c_res_gbl_vs_vpred_sensor_prf.Print('gbltst-hps-plots%s.ps'%self.getTag())
@@ -1265,6 +1665,7 @@ class plotter:
             #c_corrdiff_phi_sensor_mean.SaveAs('gbltst-hps-plots%s-%s.png'%(self.getTag(),c_corrdiff_phi_sensor_mean.GetName()))
             #c_corrdiff_phi_sensor_rms.SaveAs('gbltst-hps-plots%s-%s.png'%(self.getTag(),c_corrdiff_phi_sensor_rms.GetName()))
 
+            #c_all.SaveAs('gbltst-hps-plots%s.pdf]'%self.getTag())
 
             #saveHistosToFile(gDirectory,'gbltst-hps-plots%s.root'%self.getTag())
         
@@ -1294,5 +1695,158 @@ def saveHistosToFile(direc,fileName):
     print 'Saved %d histogram to %s' % (n,outfile.GetName())
 
 
+def getCanvasIdxThreeCols(sensor):
+    l = getLayer(sensor)
+    half = getHalf(sensor)
+    side = getHoleSlot(sensor)
+    stereoname = getAxialStereo(sensor)
+    print sensor, " -> ", l, " / ", half, " / ", stereoname, " / ", side
+
+    i = -1
+    if l < 4:
+        if half=='t':
+            if stereoname=='axial':
+                if l == 1:
+                    i = 2
+                elif l == 2:
+                    i = 8
+                else:
+                    i = 14
+            else:
+                if l == 1:
+                    i = 5
+                elif l == 2:
+                    i = 11
+                else:
+                    i = 17
+        else:
+            if stereoname=='stereo':
+                if l == 1:
+                    i = 2
+                elif l == 2:
+                    i = 8
+                else:
+                    i = 14
+            else:
+                if l == 1:
+                    i = 5
+                elif l == 2:
+                    i = 11
+                else:
+                    i = 17
+    else:
+        if half=='t':
+            if stereoname=='axial':
+                if side == 'hole':
+                    if l == 4:
+                        i = 19
+                    elif l == 5:
+                        i = 25
+                    else:
+                        i = 31
+                else:
+                    if l == 4:
+                        i = 21
+                    elif l == 5:
+                        i = 27
+                    else:
+                        i = 33
+            else:
+                if side == 'hole':
+                    if l == 4:
+                        i = 21
+                    elif l == 5:
+                        i = 22
+                    else:
+                        i = 28
+                else:
+                    if l == 4:
+                        i = 24
+                    elif l == 5:
+                        i = 30
+                    else:
+                        i = 36
+        else:
+            if stereoname=='stereo':
+                if side == 'hole':
+                    if l == 4:
+                        i = 19
+                    elif l == 5:
+                        i = 25
+                    else:
+                        i = 31
+                else:
+                    if l == 4:
+                        i = 21
+                    elif l == 5:
+                        i = 27
+                    else:
+                        i = 33
+            else:
+                if side == 'hole':
+                    if l == 4:
+                        i = 21
+                    elif l == 5:
+                        i = 22
+                    else:
+                        i = 28
+                else:
+                    if l == 4:
+                        i = 24
+                    elif l == 5:
+                        i = 30
+                    else:
+                        i = 36
+        
+    print sensor, " -> ", i
+    return i
+
+
+
+#def getCanvasIdxTwoCols(sensor):
+#    l = getLayer(sensor)
+#    half = getHalf(sensor)
+#    side = getHoleSlot(sensor)
+#    stereoname = getAxialStereo(sensor)
+#    i = -1
+#    if l < 4:
+#        if half=='t':
+#            if stereoname=='axial':
+#                i = (l-1)*4+1
+#            else:
+#                i = (l-1)*4+3
+#        else:
+#            if stereoname=='stereo':
+#                i = (l-1)*4+1
+#            else:
+#                i = (l-1)*4+3
+#    else:
+#        if half=='t':
+#            if stereoname=='axial':
+#                if side == 'hole':
+#                    i = (l-1)*4+1
+#                else:
+#                    i = (l-1)*4+2
+#            else:
+#                if side == 'hole':
+#                    i = (l-1)*4+3
+#                else:
+#                    i = (l-1)*4+4
+#        else:
+#            if stereoname=='stereo':
+#                if side == 'hole':
+#                    i = (l-1)*4+1
+#                else:
+#                    i = (l-1)*4+2
+#            else:
+#                if side == 'hole':
+#                    i = (l-1)*4+3
+#                else:
+#                    i = (l-1)*4+4
+#    
+#    #print sensor, " -> ", i
+#    print sensor, " -> layer ", l, " / ", half, " / ", stereoname, " / ", side, "   ==>  ", i
+#    return i
+#
 
 

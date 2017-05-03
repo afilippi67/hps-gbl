@@ -1,5 +1,5 @@
 import numpy as np
-from hps_utils import getLayer
+from hps_utils import getLayer, getHalf
 from math import copysign,cos,atan,tan,pi,sin,asin
 
 debug = False
@@ -104,11 +104,13 @@ class Track:
 
     def q(self):
         if copysign(1,self.perPar[0])>0:
+#        if copysign(1,self.clPar[0])>0:
             return 1
         else:
             return -1
     def q_truth(self):
         if copysign(1,self.perParTruth[0])>0:
+#        if copysign(1,self.clParTruth[0])>0:
             return 1
         else:
             return -1
