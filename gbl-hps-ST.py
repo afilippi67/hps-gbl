@@ -91,6 +91,7 @@ def main():
 
             # store projections for later use
             proL2m_list = {} 
+            nhit = 0
 
             # start trajectory at reference point
             # this defines zero path length (s=0)
@@ -289,6 +290,10 @@ def main():
                         print '%7d %10.3e  %s' % (labGlobal[0][ider], addDer[0][ider], strip.deName)
                     print '====================== ==='
 
+
+#                if(strip.id==0) or (strip.id==1): 
+#                  print 'strip.id and strip.ures ', strip.id, strip.ures
+
                 # actually add the global derivatives to the point
                 point.addGlobals(labGlobal, addDer)
 
@@ -297,7 +302,8 @@ def main():
                 
                 # save strip and label map
                 stripLabelMap[strip] = iLabel
-            
+                nhit += 1
+
                 # go to next point
                 s += step
 
@@ -332,9 +338,6 @@ def main():
                 print 'fit result: Chi2=%f Ndf=%d Lost=%d' % (Chi2, Ndf, Lost)
                 result.dump()
             
-
-
-
             # loop over the two halves and the combined to get all plots
             
             for iplot in range(3):
@@ -350,6 +353,23 @@ def main():
                 plots.h_chi2.Fill(Chi2)
                 plots.h_chi2ndf.Fill(Chi2/Ndf)
                 plots.h_chi2prob.Fill(utils.chi2Prob(Chi2,Ndf))
+
+                for i in range(0, traj.getNumPoints()-1):
+                  if(track.isTop()):
+                    plots.h_top_occupancy.Fill(track.strips[i].millepedeId)
+#                    if(track.strips[i].millepedeId == 9 or
+#                       track.strips[i].millepedeId == 13 or
+#                       track.strips[i].millepedeId == 17):
+#                       print " --------> top", track.strips[i].millepedeId, track.strips[i].deName
+                  else:
+                    plots.h_bot_occupancy.Fill(track.strips[i].millepedeId)
+#                    if(track.strips[i].millepedeId == 19 or
+#                       track.strips[i].millepedeId == 13 or
+#                       track.strips[i].millepedeId == 17):
+#                       print " --------> bot", track.strips[i].millepedeId, track.strips[i].deName
+          
+                    plots.h_nhit.Fill(nhit)
+
 
                 # loop over all the strips
                 for strip in track.strips:
@@ -376,16 +396,31 @@ def main():
                     plots.fillSensorPlots("yTcorr",strip.deName, locPar[result.idx_yT])
 
                     corr = np.matrix( [ locPar[result.idx_xT], locPar[result.idx_yT] ] )
-
                     # project to measurement direction
                     corr_meas = np.matrix( proL2m_list[strip.id] ) * np.transpose( np.matrix( corr ) )
                     ures_gbl = strip.ures - corr_meas[0,0] # note minus sign due to definition of residual
                     plots.fillSensorPlots("res_gbl", strip.deName, ures_gbl)
+
+                    prjTrkToMeas = np.array([strip.u,strip.v,strip.w])
+                    tDiff = np.array( [strip.tPos]) - np.array( [strip.origin] )
+                    tPosMeas = np.dot( prjTrkToMeas, tDiff.T) 
+                    values = np.array([tPosMeas[0,0], ures_gbl])
+                    plots.fillSensorPlots("resVsPos", strip.deName, values)
+                    values = np.array([tPosMeas[1,0], ures_gbl])
+                    plots.fillSensorPlots("resUVsPosV", strip.deName, values)
+
                     plots.fillSensorPlots("res_gbl_vs_vpred", strip.deName, [ures_gbl,tPosMeas[1]])
-                    if abs(strip.meas) > 20.:
-                        raise HpsGblException('really, this shouldnt happen? meas= ' + str(strip.meas))
                     plots.fillSensorPlots("res_gbl_vs_u", strip.deName, [ures_gbl, strip.meas] )
 
+                    values = np.array([tPosMeas[0,0], tPosMeas[1,0]])
+                    plots.fillSensorPlots("xy", strip.deName, tPosMeas)
+                    plots.fillSensorPlots("tpos", strip.deName, strip.tPos)
+
+# attach & exit angle
+#          plot.fillSensorPlots("attachAngle", strip.deName, math.pi/2 - clParGBLRes[1])
+                    plots.fillSensorPlots("exitAngle", strip.deName, strip.scatAngle)
+                    if abs(strip.meas) > 20.:
+                        raise HpsGblException('really, this shouldnt happen? meas= ' + str(strip.meas))
 
             nTracks += 1  
 
